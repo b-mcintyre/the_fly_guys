@@ -4,15 +4,18 @@ Data set located in the .csv file tited: "NEW_CD_DGRO_Subset_Data_2019_V2"
 
 The data is a subset of data from a previous experiment conducted in Dr. Ian Dworkin's lab by MSc Caitlyn Daley utilizing D. melanogaster. The data contains crosses of 8 mutant alleles in two allelic series in the Oregon-R genetic background with 20 wild type backgrounds from the Drosophila Genetic Research Panel (DGRP). The alleles range from very weak to very severe phenotypic effects on wing phenotype. Severity was measured quantitatively as total area in pixels and semi-quantitatively as morphological changes on a scale of 1-21. A score of 1 was given to wings appearing morphologically wild type and 21 given to wings with more severe morphological changes.
 
+JD: total area in pixels seems like it needs to be carefully standardized
+
+JD: Can you work to clarify the language? Are these really the same question? As in: is iron heavier than tin?; and is tin lighter than iron? I'm not saying they are; I'm saying I can't tell.
 The Biological questions we are trying to answer include:
 1) Do mutant alleles with weak or severe phenotypic effects display decreased sensitivity to genetic background effects
 indicated by reduced variation in wing total area measurements between and among strains.
 2)Do mutant alleles with moderate phenotypic effects display increased sensitivity to genetic background effects
 indicated by increased phenotypic variation of wing total area.
+JD: This could depend a lot on how you choose to define variation: variance? CV? something else?
 
-
+JD: The ¶s below are kind of just hanging there.
 beadex mutant allelic series (weak to moderate): bx[1], bx[2], bx[3]
-
 scalloped mutant allelic series (weak to severe): sd[1], sd[29.1], sd[ETX4], sd[E3], sd[58d]
 
 Oregon-R (ORE) was the background used for beadex and scalloped mutants.
