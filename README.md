@@ -3,7 +3,7 @@
 Investigating the Genetic Background Effects on variability in D. melanogaster 
 Data set located in the .csv file tited: "NEW_CD_DGRO_Subset_Data_2019_V2"
 
-The data is a subset of data from a previous experiment conducted in Dr. Ian Dworkin's lab by MSc Caitlyn Daley using *D. melanogaster*. The data contains crosses of 8 mutant alleles in two allelic series in the Oregon-R genetic background with 20 wild type backgrounds from the Drosophila Genetic Research Panel (DGRP). The alleles range from very weak to very severe phenotypic effects on wing phenotype. Severity was measured quantitatively as total area in pixels and semi-quantitatively as morphological changes on a scale of 1-21. A score of 1 was given to wings appearing morphologically wild type and 21 given to wings with more severe morphological changes.
+The data is a subset of data from a previous experiment conducted in Dr. Ian Dworkin's lab by MSc Caitlyn Daley using *D. melanogaster*. The data contains crosses of 8 mutant alleles in two allelic series in the Oregon-R genetic background with 20 wild type backgrounds from the Drosophila Genetic Research Panel (DGRP). The alleles range from very weak to very severe phenotypic effects on wing phenotype.The beadex mutant allelic series from weak to moderate is bx[1], bx[2], bx[3]. The scalloped mutant allelic series from weak to severe is sd[1], sd[29.1], sd[ETX4], sd[E3], sd[58d]. Severity was measured quantitatively as total area in pixels through a Fiji image analysis macro and semi-quantitatively as morphological changes on a scale of 1-21. A score of 1 was given to wings appearing morphologically wild type and 21 given to wings with more severe morphological changes. 
 
 JD: total area in pixels seems like it needs to be carefully standardized
 
@@ -13,11 +13,16 @@ The Biological questions we are trying to answer include:
 (indicated by reduced variation in wing total area measurements between and among strains) ?
 2)Do mutant alleles with moderate phenotypic effects display increased sensitivity to genetic background effects
 (indicated by increased phenotypic variation of wing total area) ?
+
+#Can distill the above questions into one. "Do mutant alleles with moderate phenotypic effects display increased sensitivity to genetic background effects between and within genetic wildtype backgrounds?"
+#(will quantify this by looking at wing total area measurements)
+
 JD: This could depend a lot on how you choose to define variation: variance? CV? something else?
 
 JD: The ¶s below are kind of just hanging there.
-beadex mutant allelic series (weak to moderate): bx[1], bx[2], bx[3]
-scalloped mutant allelic series (weak to severe): sd[1], sd[29.1], sd[ETX4], sd[E3], sd[58d]
+#beadex mutant allelic series (weak to moderate): bx[1], bx[2], bx[3]
+#scalloped mutant allelic series (weak to severe): sd[1], sd[29.1], sd[ETX4], sd[E3], sd[58d]
+#moved into the background of information of the data. 
 
 Oregon-R (ORE) was the background used for beadex and scalloped mutants.
 
@@ -31,7 +36,10 @@ these comparisons we are interested in the absolute deviation from the mean or m
 
 **BMB**: one way or the other you will also want to quantify the *magnitude* of the effect. Classic tests like Levene's/Brown-Forsythe may be challenging to implement in a complex context (are there covariates?) 
 
+
 Cleasby, Ian R., Shinichi Nakagawa, and Holger Schielzeth. “Quantifying the Predictability of Behaviour: Statistical Approaches for the Study of between-Individual Variation in the within-Individual Variance.” Methods in Ecology and Evolution 6, no. 1 (2015): 27–37. https://doi.org/10.1111/2041-210X.12281.
+
+#Shoud switch to a HGLM/DHGLM using the CVp as our statistic?   
 
 All crosses were reared at 24C in the Percival incubator (RH ~ 60%) on a 12:12 hour day:night cycle (unless otherwise noted).
 
