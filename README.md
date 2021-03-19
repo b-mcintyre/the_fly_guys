@@ -46,3 +46,26 @@ All crosses were reared at 24C in the Percival incubator (RH ~ 60%) on a 12:12 h
 CD_Wing_Macro:
 
 // Macro to compute wing area for Drosophila images. macro "WingSizeMacro2 [q]" { run("Scale...", "x=0.25 y=0.25 width=1020 height=768 interpolation=Bilinear average create"); run("Find Edges"); run("Enhance Contrast...", "saturated=0.4"); run("Sharpen"); run("Sharpen"); run("Make Binary"); run("Close-"); run("Dilate"); run("Fill Holes"); run("Despeckle"); run("Remove Outliers...", "radius=50 threshold=50 which=Dark"); run("Analyze Particles...", "size=50-Infinity pixel display summarize"); // run("Close"); //
+
+
+#Next steps --> decide on if we want to use a DHGLM vs a two step method
+We currently plan on testing using a DHGLM model, with the comparison statistic for variability as CVp
+The DHGLM works well with non-normal unbalanced data sets. 
+OR
+We currently plan on looking into the two-step method to see if that method is applicable to our data set, 
+where we estimate within-individual variability and fit it as a response variable for a follow up analysis.
+
+If we have time it would be interesting to utilize both models and examine the differences between the two 
+
+ 
+Figure out how to incorporate the replicate blocks into the model.
+
+Tentative variables:
+
+Random-effects: Replicate blocks
+Fixed-effects: WT DGRP strain, mutant allele
+nuisance variable: sex differences 
+Response variable: wing total area in mmsqr
+
+- figure out what variables to include in the model and how to classify the variables we believe need to be
+included in the model 
