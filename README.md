@@ -1,25 +1,27 @@
 # the_fly_guys
 
-Investigating the Genetic Background Effects on variability in D. melanogaster 
-Data set located in the .csv file tited: "NEW_CD_DGRO_Subset_Data_2019_V2"
+Investigating the Genetic Background Effects on variability in *D. melanogaster*
 
-The data is a subset of data from a previous experiment conducted in Dr. Ian Dworkin's lab by MSc Caitlyn Daley using *D. melanogaster*. The data contains crosses of 8 mutant alleles in two allelic series in the Oregon-R genetic background with 20 wild type backgrounds from the Drosophila Genetic Research Panel (DGRP). The alleles range from very weak to very severe phenotypic effects on wing phenotype.The beadex mutant allelic series from weak to moderate is bx[1], bx[2], bx[3]. The scalloped mutant allelic series from weak to severe is sd[1], sd[29.1], sd[ETX4], sd[E3], sd[58d]. Severity was measured quantitatively as total area in pixels through a Fiji image analysis macro and semi-quantitatively as morphological changes on a scale of 1-21. A score of 1 was given to wings appearing morphologically wild type and 21 given to wings with more severe morphological changes. 
+Data set located in the .csv file `NEW_CD_DGRO_Subset_Data_2019_V2`
 
-JD: total area in pixels seems like it needs to be carefully standardized
+The data is a subset of data from a previous experiment conducted in Dr. Ian Dworkin's lab by MSc Caitlyn Daley using *D. melanogaster*. The data contains crosses of 8 mutant alleles in two allelic series in the Oregon-R genetic background with 20 wild type backgrounds from the Drosophila Genetic Research Panel (DGRP). The alleles range from very weak to very severe phenotypic effects on wing phenotype. The beadex mutant allelic series from weak to moderate is bx[1], bx[2], bx[3]. The scalloped mutant allelic series from weak to severe is sd[1], sd[29.1], sd[ETX4], sd[E3], sd[58d]. Severity was measured quantitatively as total area in pixels through a Fiji image analysis macro and semi-quantitatively as morphological changes on a scale of 1-21. A score of 1 was given to wings appearing morphologically wild type and 21 given to wings with more severe morphological changes. 
 
-JD: Can you work to clarify the language? Are these really the same question? As in: is iron heavier than tin?; and is tin lighter than iron? I'm not saying they are; I'm saying I can't tell.
+**JD:** total area in pixels seems like it needs to be carefully standardized
+
+**JD:** Can you work to clarify the language? Are these really the same question? As in: is iron heavier than tin?; and is tin lighter than iron? I'm not saying they are; I'm saying I can't tell.
+
 The Biological questions we are trying to answer include:
 1) Do mutant alleles with weak or severe phenotypic effects display decreased sensitivity to genetic background effects
 (indicated by reduced variation in wing total area measurements between and among strains) ?
-2)Do mutant alleles with moderate phenotypic effects display increased sensitivity to genetic background effects
+2) Do mutant alleles with moderate phenotypic effects display increased sensitivity to genetic background effects
 (indicated by increased phenotypic variation of wing total area) ?
 
 #Can distill the above questions into one. "Do mutant alleles with moderate phenotypic effects display increased sensitivity to genetic background effects between and within genetic wildtype backgrounds?"
 #(will quantify this by looking at wing total area measurements)
 
-JD: This could depend a lot on how you choose to define variation: variance? CV? something else?
+**JD:** This could depend a lot on how you choose to define variation: variance? CV? something else?
 
-JD: The ¶s below are kind of just hanging there.
+**JD:** The ¶s below are kind of just hanging there.
 #beadex mutant allelic series (weak to moderate): bx[1], bx[2], bx[3]
 #scalloped mutant allelic series (weak to severe): sd[1], sd[29.1], sd[ETX4], sd[E3], sd[58d]
 #moved into the background of information of the data. 
@@ -45,8 +47,9 @@ All crosses were reared at 24C in the Percival incubator (RH ~ 60%) on a 12:12 h
 
 CD_Wing_Macro:
 
+```
 // Macro to compute wing area for Drosophila images. macro "WingSizeMacro2 [q]" { run("Scale...", "x=0.25 y=0.25 width=1020 height=768 interpolation=Bilinear average create"); run("Find Edges"); run("Enhance Contrast...", "saturated=0.4"); run("Sharpen"); run("Sharpen"); run("Make Binary"); run("Close-"); run("Dilate"); run("Fill Holes"); run("Despeckle"); run("Remove Outliers...", "radius=50 threshold=50 which=Dark"); run("Analyze Particles...", "size=50-Infinity pixel display summarize"); // run("Close"); //
-
+```
 
 #Next steps --> decide on if we want to use a DHGLM vs a two step method
 We currently plan on testing using a DHGLM model, with the comparison statistic for variability as CVp
@@ -69,3 +72,13 @@ Response variable: wing total area in mmsqr
 
 - figure out what variables to include in the model and how to classify the variables we believe need to be
 included in the model 
+
+**BMB**: 
+
+I think I would suggest starting with the two-stage model.  We can ask Ian about recommendations for readings.
+
+- replicate blocks are certainly a random effect.
+- I think you should include a *severity score* for the WT DGRP strain and mutant allele as a fixed effect (you could model these as quadratic), but *also* include the actual identity/label of WT and mutant allele as random effects; this allows for an overall trend but doesn't constrain the WT (for example) to fit a linear or quadratic curve *exactly* (there is a tricky idea about treating these levels as *ordered*, but it would be more complicated: we can talk about it after you have some basic stuff done)
+- sex differences would be fixed, although you have to think about what things you want to allow to interact (i.e. do you expect sex differences to vary across lines etc.?)
+
+
