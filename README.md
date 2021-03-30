@@ -8,8 +8,6 @@ The data is a subset of data from a previous experiment conducted in Dr. Ian Dwo
 
 **JD:** total area in pixels seems like it needs to be carefully standardized
 
-**JD:** Can you work to clarify the language? Are these really the same question? As in: is iron heavier than tin?; and is tin lighter than iron? I'm not saying they are; I'm saying I can't tell.
-
 The Biological questions we are trying to answer include:
 1) Do mutant alleles with weak or severe phenotypic effects display decreased sensitivity to genetic background effects
 (indicated by reduced variation in wing total area measurements between and among strains) ?
@@ -20,11 +18,6 @@ The Biological questions we are trying to answer include:
 #(will quantify this by looking at wing total area measurements)
 
 **JD:** This could depend a lot on how you choose to define variation: variance? CV? something else?
-
-**JD:** The ¶s below are kind of just hanging there.
-#beadex mutant allelic series (weak to moderate): bx[1], bx[2], bx[3]
-#scalloped mutant allelic series (weak to severe): sd[1], sd[29.1], sd[ETX4], sd[E3], sd[58d]
-#moved into the background of information of the data. 
 
 Oregon-R (ORE) was the background used for beadex and scalloped mutants.
 
