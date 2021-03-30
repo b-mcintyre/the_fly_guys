@@ -4,7 +4,7 @@ Investigating the Genetic Background Effects on variability in *D. melanogaster*
 
 Data set located in the .csv file `NEW_CD_DGRO_Subset_Data_2019_V2`
 
-The data is a subset of data from a previous experiment conducted in Dr. Ian Dworkin's lab by MSc Caitlyn Daley using *D. melanogaster*. The data contains crosses of 8 mutant alleles in two allelic series in the Oregon-R genetic background with 20 wild type backgrounds from the Drosophila Genetic Research Panel (DGRP). The alleles range from very weak to very severe phenotypic effects on wing phenotype. The beadex mutant allelic series from weak to moderate is bx[1], bx[2], bx[3]. The scalloped mutant allelic series from weak to severe is sd[1], sd[29.1], sd[ETX4], sd[E3], sd[58d]. Severity was measured quantitatively as total area in pixels through a Fiji image analysis macro and semi-quantitatively as morphological changes on a scale of 1-21. A score of 1 was given to wings appearing morphologically wild type and 21 given to wings with more severe morphological changes. 
+The data is a subset of data from a previous experiment conducted in Dr. Ian Dworkin's lab by MSc Caitlyn Daley using *D. melanogaster*. The data contains crosses of 8 mutant alleles in two allelic series in the Oregon-R genetic background with 20 wild type backgrounds from the Drosophila Genetic Research Panel (DGRP). The alleles range from very weak to very severe phenotypic effects on wing phenotype. The beadex mutant allelic series from weak to moderate is bx[1], bx[2], bx[3]. The scalloped mutant allelic series from weak to severe is sd[1], sd[29.1], sd[ETX4], sd[E3], sd[58d]. Both he bx and the sd mutations are on the x chromosome, as such only males were examined in the F1 generation from the cross. Severity was measured quantitatively as total area in pixels through a Fiji image analysis macro and semi-quantitatively as morphological changes on a scale of 1-21. A score of 1 was given to wings appearing morphologically wild type and 21 given to wings with more severe morphological changes. 
 
 **JD:** total area in pixels seems like it needs to be carefully standardized
 
@@ -67,7 +67,6 @@ Tentative variables:
 
 Random-effects: Replicate blocks
 Fixed-effects: WT DGRP strain, mutant allele
-nuisance variable: sex differences 
 Response variable: wing total area in mmsqr
 
 - figure out what variables to include in the model and how to classify the variables we believe need to be
