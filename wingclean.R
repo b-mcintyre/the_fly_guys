@@ -44,23 +44,26 @@ levels(sddat$Allele_1)
 #getting line means/sd/var and group sd/bx means/sd/var
 #maybe plot the variance over the means? 
 
-line_means_sd_var <- wing_table_clean %>% 
+line_means_sd_var_cv <- wing_table_clean %>% 
   group_by(Allele_1, WT_Background) %>% 
   summarise(length_means = mean(wing_length_mm), 
             length_sd = sd(wing_length_mm), 
-            length_var = var(wing_length_mm))
+            length_var = var(wing_length_mm),
+            length_cv = (sd(wing_length_mm)/mean(wing_length_mm))*100)
 
-sd_means_sd_var <- sddat %>% 
+sd_means_sd_var_cv <- sddat %>% 
   group_by(Allele_1, WT_Background) %>%
   summarise(length_means = mean(wing_length_mm), 
             length_sd = sd(wing_length_mm), 
-            length_var = var(wing_length_mm))
+            length_var = var(wing_length_mm),
+            length_cv = (sd(wing_length_mm)/mean(wing_length_mm))*100)
 
-bx_means_sd_var <- bxdat %>%
+bx_means_sd_var_cv <- bxdat %>%
   group_by(Allele_1, WT_Background) %>%
   summarise(length_means = mean(wing_length_mm), 
             length_sd = sd(wing_length_mm), 
-            length_var = var(wing_length_mm))
+            length_var = var(wing_length_mm),
+            length_cv = (sd(wing_length_mm)/mean(wing_length_mm))*100)
 
 ggplot(sd_means_sd_var, aes(y=length_var, x=length_means, color=Allele_1)) + geom_point()
 # interesting that the E3 and Etx4 seem to have the most variability works well with our prediction 
