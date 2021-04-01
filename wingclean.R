@@ -69,4 +69,14 @@ ggplot(sd_means_sd_var, aes(y=length_var, x=length_means, color=Allele_1)) + geo
 # interesting that the E3 and Etx4 seem to have the most variability works well with our prediction 
 
 ggplot(sd_means_sd_var, aes(x=length_means, y=length_sd, color=Allele_1, size=length_var)) + geom_point()
-# one maybe two out liers in the sd29.1 data set and wild type data set? 
+  # one maybe two outliers in the sd29.1 data set and wild type data set? 
+# maybe not log transformation is not applicable? looks like there may be a pattern there however,
+# would another transformation work better? quadratic? 
+
+ggplot(bx_means_sd_var_cv, aes(x=length_means, y=length_sd, colour=Allele_1, size=length_var)) + geom_point()
+# this looks to have no observable pattern...
+
+ggplot(line_means_sd_var_cv, aes(x=length_means, y=length_sd, color=WT_Background)) + 
+  geom_point() + 
+  facet_wrap(~Allele_1)
+# maybe not log transform? 
