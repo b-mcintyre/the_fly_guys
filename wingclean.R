@@ -68,6 +68,9 @@ bx_means_sd_var_cv <- bxdat %>%
 ggplot(sd_means_sd_var, aes(y=length_var, x=length_means, color=Allele_1)) + geom_point()
 # interesting that the E3 and Etx4 seem to have the most variability works well with our prediction 
 
+ggplot(line_means_sd_var_cv, aes(x=length_means, y=length_sd, color=Allele_1, size=length_var)) +geom_point()
+# kind of looks like a quadratic relationship? 
+
 ggplot(sd_means_sd_var, aes(x=length_means, y=length_sd, color=Allele_1, size=length_var)) + geom_point()
   # one maybe two outliers in the sd29.1 data set and wild type data set? 
 # maybe not log transformation is not applicable? looks like there may be a pattern there however,
