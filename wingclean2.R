@@ -115,3 +115,19 @@ glmmodel1 <- glm(lm(length_sd ~ poly(length_means, 2),
                     data = sd_means_sd_var))
 ## is this what BB was talking about before???? 
 
+
+#### rough among line SD/CV, compare from model later ####
+
+rough_among_line_sd1 <- line_means_sd_var_cv %>% group_by(Allele_1) %>%
+  summarize(line_sd = sd(length_means))
+
+rough_among_genotype_sd1 <- line_means_sd_var_cv %>% group_by(Allele_1) %>%
+  summarise(genotype_sd = mean(length_sd))
+
+
+rough_among_line_mean1 <- line_means_sd_var_cv %>% group_by(Allele_1) %>% 
+  summarise(line_mean = mean(length_means))
+
+rough_among_line_cv1 <- line_means_sd_var_cv %>% group_by(Allele_1) %>% 
+  summarise(line_cv = sd(length_means)/length_means)
+
