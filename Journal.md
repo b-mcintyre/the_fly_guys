@@ -15,6 +15,7 @@ Does variability or (more standard deviations on standard deviations) increase o
 
 
 i.e. 1) measure change in mean between environments(mutations): go from OREw --> sd58d how the line means change
+<<<<<<< HEAD
 2) measure change in standard deviation between environments: go from OREw --> sd58d how does the line standard deviations change
 
 looking at variation between individuals within lines/genotypes
@@ -26,3 +27,10 @@ can utilize means and standard deviation to see how among/between line means
 Fixed effects = mutants (x9)
 random effects = DGRP lines (x20) and replicate blocks (x3)
 
+=======
+2) measure change in standard deviation between envionrments: go from OREw --> sd58d how does the line standard deviations change
+
+looking at variation between individual within lines/genotypes
+looking at variation between lines 
+
+>>>>>>> 11afad4bbc6a005fb41b1b49d67afe76485f6bda
