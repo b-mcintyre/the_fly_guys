@@ -105,5 +105,13 @@ ggplot(sd_means_sd_var_cv, aes(x=length_means, y=length_sd)) +
   geom_smooth(method = lm, formula = y ~ poly(x, 3), color="red")
 
 
+#### testing ####
 
+lmmodel1 <- lm(length_sd ~ poly(length_means, 2), data = line_means_sd_var_cv)
+
+glmmodel1 <- glm(lm(length_sd ~ poly(length_means, 2),
+                    family = Gamma(link = identity),
+                    start = coef(lmmodel1),
+                    data = sd_means_sd_var))
+## is this what BB was talking about before???? 
 
