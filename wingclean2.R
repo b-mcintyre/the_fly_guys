@@ -1,5 +1,6 @@
 library(tidyverse)
 library(ggplot2)
+library(lme4)
 
 #### Cleaning Data ####
 
@@ -56,7 +57,7 @@ line_means_sd_var_cv <- wing_table_lev_raw %>%
   summarise(length_means = mean(wing_size_mm), 
             length_sd = sd(wing_size_mm),
             length_cv = (sd(wing_size_mm)/mean(wing_size_mm)),
-            lev_stat = lev_stat,
+            lev_stat = median(lev_stat),
             Individuals = n()
             )
 
@@ -65,7 +66,7 @@ sd_means_sd_var_cv <- sddat %>%
   summarise(length_means = mean(wing_size_mm), 
             length_sd = sd(wing_size_mm),
             length_cv = (sd(wing_size_mm)/mean(wing_size_mm)),
-            lev_stat = lev_stat,
+            lev_stat = median(lev_stat),
             Individuals = n()
   )
 
@@ -74,7 +75,7 @@ bx_means_sd_var_cv <- bxdat %>%
   summarise(length_means = mean(wing_size_mm), 
             length_sd = sd(wing_size_mm),
             length_cv = (sd(wing_size_mm)/mean(wing_size_mm)),
-            lev_stat = lev_stat,
+            lev_stat = median(lev_stat),
             Individuals = n()
   )
 
@@ -99,20 +100,31 @@ ggplot(line_means_sd_var_cv, aes(x=length_means, y=length_sd, color=WT_Backgroun
 #bx log trasform would be better --> using levenes in raw form would be fine 
 
 
-ggplot(sd_means_sd_var_cv, aes(x=length_means, y=length_sd)) + 
+ggplot(line_means_sd_var_cv, aes(x=length_means, y=length_sd)) + 
   geom_point(aes(color=Allele_1, size=Individuals)) +
   geom_smooth(method = lm, formula = y ~ poly(x, 2)) + 
   geom_smooth(method = lm, formula = y ~ poly(x, 3), color="red")
+
+ggplot(line_means_sd_var_cv, aes(x=length_means, y=length_cv)) +
+  geom_point(aes(color=Allele_1, size=Individuals)) + 
+  geom_smooth(method = lm, formula = y ~ poly(x, 2)) +
+  geom_smooth(method = lm, formula = y ~ poly(x, 3), color = "red")
+
 
 
 #### testing ####
 
 lmmodel1 <- lm(length_sd ~ poly(length_means, 2), data = line_means_sd_var_cv)
 
+lmmodel2 <- lm(length_sd ~ poly(length_means, 3), data = line_means_sd_var_cv)
+
+anova(lmmodel1, lmmodel2)
+
 glmmodel1 <- glm(lm(length_sd ~ poly(length_means, 2),
                     family = Gamma(link = identity),
                     start = coef(lmmodel1),
-                    data = sd_means_sd_var))
+                    data = sd_means_sd_var_cv))
+
 ## is this what BB was talking about before???? 
 
 
@@ -130,4 +142,12 @@ rough_among_line_mean1 <- line_means_sd_var_cv %>% group_by(Allele_1) %>%
 
 rough_among_line_cv1 <- line_means_sd_var_cv %>% group_by(Allele_1) %>% 
   summarise(line_cv = sd(length_means)/length_means)
+
+#### model ####
+factor(wing_table_clean$Replicate)
+
+all_glm_wing_size <- lmer(wing_table_clean ~  1 + Allele_1 + (0 + Allele_1 | WT_Background) 
+                       + (1 | Replicate),
+                       data = wing_table_clean)
+#why won't you plot? says is a list? is the reason it's a list why won't plot??? 
 
