@@ -69,7 +69,7 @@ ggplot(sd_means_sd_var, aes(y=length_var, x=length_means, color=Allele_1)) + geo
 # interesting that the E3 and Etx4 seem to have the most variability works well with our prediction 
 
 ggplot(line_means_sd_var_cv, aes(x=length_means, y=length_sd, color=Allele_1, size=length_var)) +geom_point()
-# kind of looks like a quadratic relationship? 
+  # kind of looks like a quadratic relationship? 
 
 ggplot(sd_means_sd_var, aes(x=length_means, y=length_sd, color=Allele_1, size=length_var)) + geom_point()
   # one maybe two outliers in the sd29.1 data set and wild type data set? 
@@ -83,3 +83,4 @@ ggplot(line_means_sd_var_cv, aes(x=length_means, y=length_sd, color=WT_Backgroun
   geom_point() + 
   facet_wrap(~Allele_1)
 # maybe not log transform? 
+
