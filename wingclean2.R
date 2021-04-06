@@ -55,7 +55,7 @@ line_means_sd_var_cv <- wing_table_lev_raw %>%
   group_by(Allele_1, WT_Background) %>% 
   summarise(length_means = mean(wing_size_mm), 
             length_sd = sd(wing_size_mm),
-            length_cv = (sd(wing_size_mm)/mean(wing_size_mm))*100,
+            length_cv = (sd(wing_size_mm)/mean(wing_size_mm)),
             lev_stat = lev_stat,
             Individuals = n()
             )
@@ -64,7 +64,7 @@ sd_means_sd_var_cv <- sddat %>%
   group_by(Allele_1, WT_Background) %>%
   summarise(length_means = mean(wing_size_mm), 
             length_sd = sd(wing_size_mm),
-            length_cv = (sd(wing_size_mm)/mean(wing_size_mm))*100,
+            length_cv = (sd(wing_size_mm)/mean(wing_size_mm)),
             lev_stat = lev_stat,
             Individuals = n()
   )
@@ -73,7 +73,7 @@ bx_means_sd_var_cv <- bxdat %>%
   group_by(Allele_1, WT_Background) %>%
   summarise(length_means = mean(wing_size_mm), 
             length_sd = sd(wing_size_mm),
-            length_cv = (sd(wing_size_mm)/mean(wing_size_mm))*100,
+            length_cv = (sd(wing_size_mm)/mean(wing_size_mm)),
             lev_stat = lev_stat,
             Individuals = n()
   )
@@ -98,11 +98,11 @@ ggplot(line_means_sd_var_cv, aes(x=length_means, y=length_sd, color=WT_Backgroun
 #display sample size for the dots 
 #bx log trasform would be better --> using levenes in raw form would be fine 
 
-line_meanssd <- wing_table_lev_raw %>% group_by(WT_Background) %>% summarise(line_means = mean(wing_size_mm),
-                                                                             line_sd = sd(wing_size_mm))
 
-ggplot(line_meanssd, aes(x=line_means, y=line_sd)) + geom_point()
-
+ggplot(sd_means_sd_var_cv, aes(x=length_means, y=length_sd)) + 
+  geom_point(aes(color=Allele_1, size=Individuals)) +
+  geom_smooth(method = lm, formula = y ~ poly(x, 2)) + 
+  geom_smooth(method = lm, formula = y ~ poly(x, 3), color="red")
 
 
 
