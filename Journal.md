@@ -21,8 +21,18 @@ i.e. 1) measure change in mean between environments(mutations): go from OREw -->
 looking at variation between individuals within lines/genotypes
 looking at variation between lines 
 
-utilize median form of levene's statistic to give a measurement of variability among individuals who are genetically similar
-can utilize means and standard deviation to see how among/between line means
+utilize median form of levene's statistic to give a measurement of variability among individuals who are genetically similar, median form of levene's statistic does not rely on the normality of data 
+Test for equality of levene's statistic using an F-test
+can utilize means and standard deviation/variance to see how among/between line means
+
+for a given quantiative trait experimentally measured across conditions/treatments the mean and more generally the distribution can vary among data sets(groups)
+- need appropriate measures of the measurements between mean and variance
+- method of doing this = regress variance over the mean of the dataset then use the residual deviations from this relationship 
+
+to compare robustness of different traits, measured with different phenotypic scales to the same pertubation(our case mutant enviornent/allele) need a dimensionless metric
+CV often but this only applies to normal distributions with non-negative values 
+Comparing CV on different traits remains problematic when relationship cannot be assumed to be proportional 
+
 
 Fixed effects = mutants (x9)
 random effects = DGRP lines (x20) and replicate blocks (x3)
@@ -33,4 +43,6 @@ random effects = DGRP lines (x20) and replicate blocks (x3)
 looking at variation between individual within lines/genotypes
 looking at variation between lines 
 
+
 >>>>>>> 11afad4bbc6a005fb41b1b49d67afe76485f6bda
+
