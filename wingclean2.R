@@ -185,7 +185,7 @@ rough_among_line_mean1 <- line_means_sd_var_cv %>% group_by(Allele_1) %>%
 rough_among_line_cv1 <- line_means_sd_var_cv %>% group_by(Allele_1) %>% 
   summarise(line_cv = sd(length_means)/length_means)
 
-#### model ####
+#### multivel model ####
 factor(wing_table_clean$Replicate)
 
 all_glm_wing_size <- lmer(wing_table_clean ~  1 + Allele_1 + (0 + Allele_1 | WT_Background) 
