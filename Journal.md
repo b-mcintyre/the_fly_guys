@@ -61,8 +61,19 @@ y-axis = our measure of variation (CV or levene's statistic)
 - can see that while means of lines can change so can the amount of variation around that mean depending on the genetic background and mutation 
 
 
-do for all lines then seperate plots via allelic series bx and sd
+do for all lines then separate plots via allelic series bx and sd
 
+Have multi-level dataset --> can do 2 step, use a multilevel model (like Double hiearchy?)
+see if can do a two step model
+
+1) fit a regression to the within group between individuals
+2) fit a regression to the among groups
+
+- Will this be the same predictors for both levels of the model?
+- What are my predictors for this model?
+fixed = mutant allelle
+random = DGRP line & replicate block
+- any more that I can think of? will these be different at different levels? 
 
 
 >>>>>>> 11afad4bbc6a005fb41b1b49d67afe76485f6bda
