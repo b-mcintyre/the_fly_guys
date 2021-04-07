@@ -51,7 +51,17 @@ x-axis = mutant allele
 color = DGRP line
 y-axis = line means 
 
-do one for all lines then seperate by alleic series 
+This will allow me to see the change in means indicating that the lines means are changing due to genetic background effects in conjunction with mutational effects
+
+- create more reaction norm plots
+x-axis = mutant allele
+color = DGRP line
+y-axis = our measure of variation (CV or levene's statistic)
+
+- can see that while means of lines can change so can the amount of variation around that mean depending on the genetic background and mutation 
+
+
+do for all lines then seperate plots via allelic series bx and sd
 
 
 
