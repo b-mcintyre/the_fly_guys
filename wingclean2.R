@@ -32,7 +32,7 @@ wing_table_lev_raw <- wing_table_clean %>% mutate ( lev_stat = lev_stat)
 
 str(wing_table_clean)
 
-bxdat <- wing_table_clean %>% 
+bxdat <- wing_table_lev_raw %>% 
   filter(Allele_1 %in% c("OREw", "bx[1]", "bx[2]", "bx[3]")) %>%
   droplevels()
 
@@ -40,7 +40,7 @@ str(bxdat)
 
 levels(bxdat$Allele_1)
 
-sddat<- wing_table_clean %>% 
+sddat<- wing_table_lev_raw %>% 
   filter(Allele_1 %in% c("OREw", "sd[1]", "sd[29.1]", "sd[58d]", "sd[E3]", "sd[ETX4]")) %>%
   droplevels() 
 
@@ -110,7 +110,49 @@ ggplot(line_means_sd_var_cv, aes(x=length_means, y=length_cv)) +
   geom_smooth(method = lm, formula = y ~ poly(x, 2)) +
   geom_smooth(method = lm, formula = y ~ poly(x, 3), color = "red")
 
+#RXN norm plots for means
 
+ggplot(line_means_sd_var_cv, aes(x=Allele_1, y=length_means)) + 
+  geom_line(aes(color=WT_Background, group=WT_Background)) + 
+  geom_point(aes(color=WT_Background))
+
+ggplot(sd_means_sd_var_cv, aes(x=Allele_1, y=length_means)) +
+  geom_line(aes(color=WT_Background, group=WT_Background)) +
+  geom_point(aes(color=WT_Background))
+
+
+ggplot(bx_means_sd_var_cv, aes(x=Allele_1, y=length_means)) +
+  geom_line(aes(color=WT_Background, group=WT_Background)) + 
+  geom_point(aes(color=WT_Background))
+
+#RXN norm plots for CV
+
+ggplot(line_means_sd_var_cv, aes(x=Allele_1, y=length_cv)) + 
+  geom_line(aes(color=WT_Background, group=WT_Background)) + 
+  geom_point(aes(color=WT_Background))
+
+ggplot(sd_means_sd_var_cv, aes(x=Allele_1, y=length_cv)) + 
+  geom_line(aes(color=WT_Background, group=WT_Background)) + 
+  geom_point(aes(color=WT_Background))
+
+ggplot(bx_means_sd_var_cv, aes(x=Allele_1, y=length_cv)) + 
+  geom_line(aes(color=WT_Background, group=WT_Background)) + 
+  geom_point(aes(color=WT_Background))
+
+## RXN norm plots for median levene's statistic
+
+ggplot(line_means_sd_var_cv, aes(x=Allele_1, y=lev_stat)) + 
+  geom_line(aes(color=WT_Background, group=WT_Background)) + 
+  geom_point(aes(color=WT_Background))
+
+
+ggplot(sd_means_sd_var_cv, aes(x=Allele_1, y=lev_stat)) + 
+  geom_line(aes(color=WT_Background, group=WT_Background)) + 
+  geom_point(aes(color=WT_Background))
+
+ggplot(bx_means_sd_var_cv, aes(x=Allele_1, y=lev_stat)) + 
+  geom_line(aes(color=WT_Background, group=WT_Background)) + 
+  geom_point(aes(color=WT_Background))
 
 #### testing ####
 
@@ -149,5 +191,7 @@ factor(wing_table_clean$Replicate)
 all_glm_wing_size <- lmer(wing_table_clean ~  1 + Allele_1 + (0 + Allele_1 | WT_Background) 
                        + (1 | Replicate),
                        data = wing_table_clean)
-#why won't you plot? says is a list? is the reason it's a list why won't plot??? 
+#why won't you plot? says is a list? is the reason it's a list why won't plot???
+
+
 
