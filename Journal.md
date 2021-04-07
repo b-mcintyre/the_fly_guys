@@ -44,5 +44,16 @@ looking at variation between individual within lines/genotypes
 looking at variation between lines 
 
 
+7 April 21
+
+- create reaction norm plots via utilization of spaghetti plots
+x-axis = mutant allele
+color = DGRP line
+y-axis = line means 
+
+do one for all lines then seperate by alleic series 
+
+
+
 >>>>>>> 11afad4bbc6a005fb41b1b49d67afe76485f6bda
 
