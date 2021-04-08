@@ -168,11 +168,14 @@ anova(lmmodel1, lmmodel2)
 #this glm model won't fit at the second step/level --> why? figure out 
 
 glmmodel1 <- glm(lm(length_sd ~ poly(length_means, 2),
-                    family = Gamma(link = identity),
+                    family = Gamma(link = log),
                     start = coef(lmmodel1),
                     data = sd_means_sd_var_cv))
+#model also shows singularity, uses sd as the comparison statistic.
 
+summary(glmmodel1)
 
+Anova(glmmodel1)
 
 #### rough among line SD/CV, compare from model later ####
 
@@ -194,9 +197,20 @@ rough_among_line_cv1 <- line_means_sd_var_cv %>% group_by(Allele_1) %>%
 #### multilevel model ####
 factor(wing_table_clean$Replicate)
 
-all_glm_wing_size_lev <- lmer(lev_stat ~  1 + Allele_1 + (0 + Allele_1 | WT_Background) 
-                       + (1 | Replicate),
+#JD code suggestion results in a warning message of checking convergence 
+JDall_glm_wing_size_lev <- lmer(lev_stat ~  1 + Allele_1 + Replicate + (0 + Allele_1 | WT_Background),
                        data = wing_table_lev_raw)
+
+#Original coding:
+all_glm_wing_size_lev <- lmer(lev_stat ~ Allele_1 + (0 + Allele_1 | WT_Background)
+                              + (1|Replicate),
+                              data = wing_table_clean)
+
+# this is where JD said replicate should be treated as a fixed effect because there is only two levels(3ish)
+# which he believes is causing the singularity 
+#BB suggests using (1|background/allele) making the assumption that each of the alleles covary the same
+#this seems like a very strong assumption.
+#BB wants to know at what level we are looking into/what the goal of this whole analysis is
 
 all_glm_wing_size_size <- lmer(wing_size_mm ~ 1 + Allele_1 + (0 + Allele_1 | WT_Background) 
                                + (1 | Replicate),
