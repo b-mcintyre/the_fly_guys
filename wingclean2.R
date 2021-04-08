@@ -165,7 +165,10 @@ lmmodel2 <- lm(length_sd ~ poly(length_means, 3), data = line_means_sd_var_cv)
 
 anova(lmmodel1, lmmodel2)
 
-#this glm model won't fit at the second step/level --> why? figure out 
+#this glm model won't fit at the second step/level --> why?
+#use log link because an gamma stuggests that no parameters can be negatie
+#identity says that yes some parameters can be negative
+#therefore use a log link as it also says no parameters can be negative 
 
 glmmodel1 <- glm(lm(length_sd ~ poly(length_means, 2),
                     family = Gamma(link = log),
