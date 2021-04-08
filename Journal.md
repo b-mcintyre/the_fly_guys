@@ -69,11 +69,10 @@ see if can do a two step model
 1) fit a regression to the within group between individuals
 2) fit a regression to the among groups
 
-- Will this be the same predictors for both levels of the model?
-- What are my predictors for this model?
-fixed = mutant allelle
-random = DGRP line & replicate block
-- any more that I can think of? will these be different at different levels? 
+- Will this be the same predictors for both levels of the model = no at the second level the predictors are the models' that were created for each of the predictors
+- What are my predictors for this model = DGRP line, mutant allele, and Replicate blocks
+
+- question then becomes what models do I fit at the 1st levels to bring up to the second level (how do I fit these models how does that make sense??)
 
 
 >>>>>>> 11afad4bbc6a005fb41b1b49d67afe76485f6bda
