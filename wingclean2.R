@@ -204,13 +204,25 @@ factor(wing_table_clean$Replicate)
 JDall_glm_wing_size_lev <- lmer(lev_stat ~  1 + Allele_1 + Replicate + (0 + Allele_1 | WT_Background),
                        data = wing_table_lev_raw)
 
+#try nesting within the mutants 
+JD2all_glm_wing_size_lev <- lmer(lev_stat ~ Allele_1 + (0 + Allele_1 | WT_Background)
+                              + (1|Allele_1/Replicate),
+                              data = wing_table_lev_raw)
+
 #Original coding:
 all_glm_wing_size_lev <- lmer(lev_stat ~ Allele_1 + (0 + Allele_1 | WT_Background)
                               + (1|Replicate),
-                              data = wing_table_clean)
+                              data = wing_table_lev_raw)
+
+#BB sugestion:
+
+BBall_glm_wing_size_lev <- lmer(lev_stat ~ Allele_1 + (1|WT_Background/Allele_1)
+                                + (1|Replicate),
+                                data= wing_table_lev_raw)
+#still singular 
 
 # this is where JD said replicate should be treated as a fixed effect because there is only two levels(3ish)
-# which he believes is causing the singularity 
+# which he believes is causing the singularity/problems 
 #BB suggests using (1|background/allele) making the assumption that each of the alleles covary the same
 #this seems like a very strong assumption.
 #BB wants to know at what level we are looking into/what the goal of this whole analysis is
