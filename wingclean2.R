@@ -1,7 +1,8 @@
 library(tidyverse)
 library(ggplot2)
 library(lme4)
-
+library(car)
+library(rsq)
 #### Cleaning Data ####
 
 # put into rda file once sure is completely clean 
@@ -193,11 +194,28 @@ rough_among_line_cv1 <- line_means_sd_var_cv %>% group_by(Allele_1) %>%
 #### multilevel model ####
 factor(wing_table_clean$Replicate)
 
-all_glm_wing_size <- lmer(wing_table_clean ~  1 + Allele_1 + (0 + Allele_1 | WT_Background) 
+all_glm_wing_size_lev <- lmer(lev_stat ~  1 + Allele_1 + (0 + Allele_1 | WT_Background) 
                        + (1 | Replicate),
-                       data = wing_table_clean)
-#why won't you plot? says is a list? is the reason it's a list why won't plot???
+                       data = wing_table_lev_raw)
 
+all_glm_wing_size_size <- lmer(wing_size_mm ~ 1 + Allele_1 + (0 + Allele_1 | WT_Background) 
+                               + (1 | Replicate),
+                               data = wing_table_clean)
 
+#over paramaterized for both models? 
 
+summary(all_glm_wing_size_lev)
 
+summary(all_glm_wing_size_size)
+
+Anova(all_glm_wing_size_lev)
+
+Anova(all_glm_wing_size_size)
+
+#R2 values
+rsq(all_glm_wing_size_lev)
+#model doesn't explain a lot of the variability (less than half? a bunch of noise?)
+
+rsq(all_glm_wing_size_size)
+
+#model explains a lot of the size effects
