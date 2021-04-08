@@ -58,12 +58,14 @@ Figure out how to incorporate the replicate blocks into the model.
 
 Tentative variables:
 
-Random-effects: Replicate blocks
-Fixed-effects: WT DGRP strain, mutant allele
-Response variable: wing total area in mmsqr
+Random-effects: Replicate blocks, WT DGRP strain
+Fixed-effects: mutant allele
+Response variable: wing size in mm
 
-- figure out what variables to include in the model and how to classify the variables we believe need to be
-included in the model 
+Looking into variation at 2 levels
+1) Investigating variation among individuals who are genetically identical, variation around the mean
+2) Investigating variation among means among each of our groups 
+
 
 **BMB**: 
 

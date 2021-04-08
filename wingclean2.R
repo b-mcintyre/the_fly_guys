@@ -1,6 +1,8 @@
 library(tidyverse)
 library(ggplot2)
-
+library(lme4)
+library(car)
+library(rsq)
 #### Cleaning Data ####
 
 # put into rda file once sure is completely clean 
@@ -31,7 +33,7 @@ wing_table_lev_raw <- wing_table_clean %>% mutate ( lev_stat = lev_stat)
 
 str(wing_table_clean)
 
-bxdat <- wing_table_clean %>% 
+bxdat <- wing_table_lev_raw %>% 
   filter(Allele_1 %in% c("OREw", "bx[1]", "bx[2]", "bx[3]")) %>%
   droplevels()
 
@@ -39,7 +41,7 @@ str(bxdat)
 
 levels(bxdat$Allele_1)
 
-sddat<- wing_table_clean %>% 
+sddat<- wing_table_lev_raw %>% 
   filter(Allele_1 %in% c("OREw", "sd[1]", "sd[29.1]", "sd[58d]", "sd[E3]", "sd[ETX4]")) %>%
   droplevels() 
 
@@ -55,8 +57,8 @@ line_means_sd_var_cv <- wing_table_lev_raw %>%
   group_by(Allele_1, WT_Background) %>% 
   summarise(length_means = mean(wing_size_mm), 
             length_sd = sd(wing_size_mm),
-            length_cv = (sd(wing_size_mm)/mean(wing_size_mm))*100,
-            lev_stat = lev_stat,
+            length_cv = (sd(wing_size_mm)/mean(wing_size_mm)),
+            lev_stat = median(lev_stat),
             Individuals = n()
             )
 
@@ -64,8 +66,8 @@ sd_means_sd_var_cv <- sddat %>%
   group_by(Allele_1, WT_Background) %>%
   summarise(length_means = mean(wing_size_mm), 
             length_sd = sd(wing_size_mm),
-            length_cv = (sd(wing_size_mm)/mean(wing_size_mm))*100,
-            lev_stat = lev_stat,
+            length_cv = (sd(wing_size_mm)/mean(wing_size_mm)),
+            lev_stat = median(lev_stat),
             Individuals = n()
   )
 
@@ -73,8 +75,8 @@ bx_means_sd_var_cv <- bxdat %>%
   group_by(Allele_1, WT_Background) %>%
   summarise(length_means = mean(wing_size_mm), 
             length_sd = sd(wing_size_mm),
-            length_cv = (sd(wing_size_mm)/mean(wing_size_mm))*100,
-            lev_stat = lev_stat,
+            length_cv = (sd(wing_size_mm)/mean(wing_size_mm)),
+            lev_stat = median(lev_stat),
             Individuals = n()
   )
 
@@ -98,12 +100,122 @@ ggplot(line_means_sd_var_cv, aes(x=length_means, y=length_sd, color=WT_Backgroun
 #display sample size for the dots 
 #bx log trasform would be better --> using levenes in raw form would be fine 
 
-line_meanssd <- wing_table_lev_raw %>% group_by(WT_Background) %>% summarise(line_means = mean(wing_size_mm),
-                                                                             line_sd = sd(wing_size_mm))
 
-ggplot(line_meanssd, aes(x=line_means, y=line_sd)) + geom_point()
+ggplot(line_means_sd_var_cv, aes(x=length_means, y=length_sd)) + 
+  geom_point(aes(color=Allele_1, size=Individuals)) +
+  geom_smooth(method = lm, formula = y ~ poly(x, 2)) + 
+  geom_smooth(method = lm, formula = y ~ poly(x, 3), color="red")
+
+ggplot(line_means_sd_var_cv, aes(x=length_means, y=length_cv)) +
+  geom_point(aes(color=Allele_1, size=Individuals)) + 
+  geom_smooth(method = lm, formula = y ~ poly(x, 2)) +
+  geom_smooth(method = lm, formula = y ~ poly(x, 3), color = "red")
+
+#RXN norm plots for means
+
+ggplot(line_means_sd_var_cv, aes(x=Allele_1, y=length_means)) + 
+  geom_line(aes(color=WT_Background, group=WT_Background)) + 
+  geom_point(aes(color=WT_Background))
+
+ggplot(sd_means_sd_var_cv, aes(x=Allele_1, y=length_means)) +
+  geom_line(aes(color=WT_Background, group=WT_Background)) +
+  geom_point(aes(color=WT_Background))
+
+
+ggplot(bx_means_sd_var_cv, aes(x=Allele_1, y=length_means)) +
+  geom_line(aes(color=WT_Background, group=WT_Background)) + 
+  geom_point(aes(color=WT_Background))
+
+#RXN norm plots for CV
+
+ggplot(line_means_sd_var_cv, aes(x=Allele_1, y=length_cv)) + 
+  geom_line(aes(color=WT_Background, group=WT_Background)) + 
+  geom_point(aes(color=WT_Background))
+
+ggplot(sd_means_sd_var_cv, aes(x=Allele_1, y=length_cv)) + 
+  geom_line(aes(color=WT_Background, group=WT_Background)) + 
+  geom_point(aes(color=WT_Background))
+
+ggplot(bx_means_sd_var_cv, aes(x=Allele_1, y=length_cv)) + 
+  geom_line(aes(color=WT_Background, group=WT_Background)) + 
+  geom_point(aes(color=WT_Background))
+
+## RXN norm plots for median levene's statistic
+
+ggplot(line_means_sd_var_cv, aes(x=Allele_1, y=lev_stat)) + 
+  geom_line(aes(color=WT_Background, group=WT_Background)) + 
+  geom_point(aes(color=WT_Background))
+
+
+ggplot(sd_means_sd_var_cv, aes(x=Allele_1, y=lev_stat)) + 
+  geom_line(aes(color=WT_Background, group=WT_Background)) + 
+  geom_point(aes(color=WT_Background))
+
+ggplot(bx_means_sd_var_cv, aes(x=Allele_1, y=lev_stat)) + 
+  geom_line(aes(color=WT_Background, group=WT_Background)) + 
+  geom_point(aes(color=WT_Background))
+
+#### testing ####
+
+#Two step method, using the polynomial 2 model fit to the previous data using sd
+
+lmmodel1 <- lm(length_sd ~ poly(length_means, 2), data = line_means_sd_var_cv)
+
+lmmodel2 <- lm(length_sd ~ poly(length_means, 3), data = line_means_sd_var_cv)
+
+anova(lmmodel1, lmmodel2)
+
+#this glm model won't fit at the second step/level --> why? figure out 
+
+glmmodel1 <- glm(lm(length_sd ~ poly(length_means, 2),
+                    family = Gamma(link = identity),
+                    start = coef(lmmodel1),
+                    data = sd_means_sd_var_cv))
 
 
 
+#### rough among line SD/CV, compare from model later ####
+
+rough_among_line_sd1 <- line_means_sd_var_cv %>% group_by(Allele_1) %>%
+  summarize(line_sd = sd(length_means))
+
+rough_among_genotype_sd1 <- line_means_sd_var_cv %>% group_by(Allele_1) %>%
+  summarise(genotype_sd = mean(length_sd))
 
 
+rough_among_line_mean1 <- line_means_sd_var_cv %>% group_by(Allele_1) %>% 
+  summarise(line_mean = mean(length_means))
+
+rough_among_line_cv1 <- line_means_sd_var_cv %>% group_by(Allele_1) %>% 
+  summarise(line_cv = sd(length_means)/length_means)
+
+
+
+#### multilevel model ####
+factor(wing_table_clean$Replicate)
+
+all_glm_wing_size_lev <- lmer(lev_stat ~  1 + Allele_1 + (0 + Allele_1 | WT_Background) 
+                       + (1 | Replicate),
+                       data = wing_table_lev_raw)
+
+all_glm_wing_size_size <- lmer(wing_size_mm ~ 1 + Allele_1 + (0 + Allele_1 | WT_Background) 
+                               + (1 | Replicate),
+                               data = wing_table_clean)
+
+#over paramaterized for both models? 
+
+summary(all_glm_wing_size_lev)
+
+summary(all_glm_wing_size_size)
+
+Anova(all_glm_wing_size_lev)
+
+Anova(all_glm_wing_size_size)
+
+#R2 values
+rsq(all_glm_wing_size_lev)
+#model doesn't explain a lot of the variability (less than half? a bunch of noise?)
+
+rsq(all_glm_wing_size_size)
+
+#model explains a lot of the size effects
