@@ -75,8 +75,8 @@ see if can do a two step model
 - question then becomes what models do I fit at the 1st levels to bring up to the second level (how do I fit these models how does that make sense??)
 
   Each mutant will have a different intercept but same slope
-  Each mutant/background will have different slopes and intercepts
-  Each replicate block will have a different intecept but same slope
+  Each mutant:background will have different slopes and intercepts
+  Each replicate block will have a different intercept but same slope
 
 >>>>>>> 11afad4bbc6a005fb41b1b49d67afe76485f6bda
 

@@ -25,13 +25,13 @@ levels(wing_table_clean$Allele_1)
 
 source("scripts/ID_LeveneStat_V1_2016.R")
 
-#Create levene statistic
-lev_stat <- with(wing_table_clean, 
-                 LeveneDeviates(y = wing_size_mm, group = Allele_1:WT_Background, med = TRUE))
 
-wing_table_lev_raw <- wing_table_clean %>% mutate ( lev_stat = lev_stat)
+wing_table_lev_raw <- wing_table_clean %>%
+    mutate ( lev_stat = LeveneDeviates(y = wing_size_mm, group = Allele_1:WT_Background, med = TRUE))
 
 str(wing_table_clean)
+
+saveRDS(wing_table_lev_raw, file ="wing_table_lev_raw.rds")
 
 bxdat <- wing_table_lev_raw %>% 
   filter(Allele_1 %in% c("OREw", "bx[1]", "bx[2]", "bx[3]")) %>%
@@ -165,14 +165,20 @@ lmmodel2 <- lm(length_sd ~ poly(length_means, 3), data = line_means_sd_var_cv)
 
 anova(lmmodel1, lmmodel2)
 
-#this glm model won't fit at the second step/level --> why? figure out 
+#this glm model won't fit at the second step/level --> why?
+#use log link because an gamma stuggests that no parameters can be negatie
+#identity says that yes some parameters can be negative
+#therefore use a log link as it also says no parameters can be negative 
 
 glmmodel1 <- glm(lm(length_sd ~ poly(length_means, 2),
-                    family = Gamma(link = identity),
+                    family = Gamma(link = log),
                     start = coef(lmmodel1),
                     data = sd_means_sd_var_cv))
+#model also shows singularity, uses sd as the comparison statistic.
 
+summary(glmmodel1)
 
+Anova(glmmodel1)
 
 #### rough among line SD/CV, compare from model later ####
 
@@ -194,9 +200,32 @@ rough_among_line_cv1 <- line_means_sd_var_cv %>% group_by(Allele_1) %>%
 #### multilevel model ####
 factor(wing_table_clean$Replicate)
 
-all_glm_wing_size_lev <- lmer(lev_stat ~  1 + Allele_1 + (0 + Allele_1 | WT_Background) 
-                       + (1 | Replicate),
+#JD code suggestion results in a warning message of checking convergence 
+JDall_glm_wing_size_lev <- lmer(lev_stat ~  1 + Allele_1 + Replicate + (0 + Allele_1 | WT_Background),
                        data = wing_table_lev_raw)
+
+#try nesting within the mutants 
+JD2all_glm_wing_size_lev <- lmer(lev_stat ~ Allele_1 + (0 + Allele_1 | WT_Background)
+                              + (1|Allele_1/Replicate),
+                              data = wing_table_lev_raw)
+
+#Original coding:
+all_glm_wing_size_lev <- lmer(lev_stat ~ Allele_1 + (0 + Allele_1 | WT_Background)
+                              + (1|Replicate),
+                              data = wing_table_lev_raw)
+
+#BB suggestion:
+
+BBall_glm_wing_size_lev <- lmer(lev_stat ~ Allele_1 + (1|WT_Background/Allele_1)
+                                + (1|Replicate),
+                                data= wing_table_lev_raw)
+#still singular 
+
+# this is where JD said replicate should be treated as a fixed effect because there is only two levels(3ish)
+# which he believes is causing the singularity/problems 
+#BB suggests using (1|background/allele) making the assumption that each of the alleles covary the same
+#this seems like a very strong assumption.
+#BB wants to know at what level we are looking into/what the goal of this whole analysis is
 
 all_glm_wing_size_size <- lmer(wing_size_mm ~ 1 + Allele_1 + (0 + Allele_1 | WT_Background) 
                                + (1 | Replicate),
