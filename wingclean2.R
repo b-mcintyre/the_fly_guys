@@ -25,13 +25,13 @@ levels(wing_table_clean$Allele_1)
 
 source("scripts/ID_LeveneStat_V1_2016.R")
 
-#Create levene statistic
-lev_stat <- with(wing_table_clean, 
-                 LeveneDeviates(y = wing_size_mm, group = Allele_1:WT_Background, med = TRUE))
 
-wing_table_lev_raw <- wing_table_clean %>% mutate ( lev_stat = lev_stat)
+wing_table_lev_raw <- wing_table_clean %>%
+    mutate ( lev_stat = LeveneDeviates(y = wing_size_mm, group = Allele_1:WT_Background, med = TRUE))
 
 str(wing_table_clean)
+
+saveRDS(wing_table_lev_raw, file ="wing_table_lev_raw.rds")
 
 bxdat <- wing_table_lev_raw %>% 
   filter(Allele_1 %in% c("OREw", "bx[1]", "bx[2]", "bx[3]")) %>%
@@ -214,7 +214,7 @@ all_glm_wing_size_lev <- lmer(lev_stat ~ Allele_1 + (0 + Allele_1 | WT_Backgroun
                               + (1|Replicate),
                               data = wing_table_lev_raw)
 
-#BB sugestion:
+#BB suggestion:
 
 BBall_glm_wing_size_lev <- lmer(lev_stat ~ Allele_1 + (1|WT_Background/Allele_1)
                                 + (1|Replicate),
