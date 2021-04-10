@@ -3,6 +3,7 @@ library(ggplot2)
 library(lme4)
 library(car)
 library(rsq)
+library(emmeans)
 #### Cleaning Data ####
 
 # put into rda file once sure is completely clean 
@@ -58,7 +59,7 @@ line_means_sd_var_cv <- wing_table_lev_raw %>%
   summarise(length_means = mean(wing_size_mm), 
             length_sd = sd(wing_size_mm),
             length_cv = (sd(wing_size_mm)/mean(wing_size_mm)),
-            lev_stat = median(lev_stat),
+            lev_stat = mean(lev_stat),
             Individuals = n()
             )
 
@@ -67,7 +68,7 @@ sd_means_sd_var_cv <- sddat %>%
   summarise(length_means = mean(wing_size_mm), 
             length_sd = sd(wing_size_mm),
             length_cv = (sd(wing_size_mm)/mean(wing_size_mm)),
-            lev_stat = median(lev_stat),
+            lev_stat = mean(lev_stat),
             Individuals = n()
   )
 
@@ -76,7 +77,7 @@ bx_means_sd_var_cv <- bxdat %>%
   summarise(length_means = mean(wing_size_mm), 
             length_sd = sd(wing_size_mm),
             length_cv = (sd(wing_size_mm)/mean(wing_size_mm)),
-            lev_stat = median(lev_stat),
+            lev_stat = mean(lev_stat),
             Individuals = n()
   )
 
@@ -111,7 +112,7 @@ ggplot(line_means_sd_var_cv, aes(x=length_means, y=length_cv)) +
   geom_smooth(method = lm, formula = y ~ poly(x, 2)) +
   geom_smooth(method = lm, formula = y ~ poly(x, 3), color = "red")
 
-#RXN norm plots for means
+#RXN norm plots for line means
 
 ggplot(line_means_sd_var_cv, aes(x=Allele_1, y=length_means)) + 
   geom_line(aes(color=WT_Background, group=WT_Background)) + 
@@ -126,7 +127,7 @@ ggplot(bx_means_sd_var_cv, aes(x=Allele_1, y=length_means)) +
   geom_line(aes(color=WT_Background, group=WT_Background)) + 
   geom_point(aes(color=WT_Background))
 
-#RXN norm plots for CV
+#RXN norm plots for raw CV
 
 ggplot(line_means_sd_var_cv, aes(x=Allele_1, y=length_cv)) + 
   geom_line(aes(color=WT_Background, group=WT_Background)) + 
@@ -140,7 +141,7 @@ ggplot(bx_means_sd_var_cv, aes(x=Allele_1, y=length_cv)) +
   geom_line(aes(color=WT_Background, group=WT_Background)) + 
   geom_point(aes(color=WT_Background))
 
-## RXN norm plots for median levene's statistic
+## RXN norm plots for raw mean levene's statistic
 
 ggplot(line_means_sd_var_cv, aes(x=Allele_1, y=lev_stat)) + 
   geom_line(aes(color=WT_Background, group=WT_Background)) + 
@@ -173,7 +174,7 @@ anova(lmmodel1, lmmodel2)
 glmmodel1 <- glm(lm(length_sd ~ poly(length_means, 2),
                     family = Gamma(link = log),
                     start = coef(lmmodel1),
-                    data = sd_means_sd_var_cv))
+                    data = line_means_sd_var_cv))
 #model also shows singularity, uses sd as the comparison statistic.
 
 summary(glmmodel1)
@@ -192,6 +193,7 @@ rough_among_genotype_sd1 <- line_means_sd_var_cv %>% group_by(Allele_1) %>%
 rough_among_line_mean1 <- line_means_sd_var_cv %>% group_by(Allele_1) %>% 
   summarise(line_mean = mean(length_means))
 
+
 rough_among_line_cv1 <- line_means_sd_var_cv %>% group_by(Allele_1) %>% 
   summarise(line_cv = sd(length_means)/length_means)
 
@@ -203,6 +205,8 @@ factor(wing_table_clean$Replicate)
 #JD code suggestion results in a warning message of checking convergence 
 JDall_glm_wing_size_lev <- lmer(lev_stat ~  1 + Allele_1 + Replicate + (0 + Allele_1 | WT_Background),
                        data = wing_table_lev_raw)
+
+allFit(JDall_glm_wing_size_lev)
 
 #try nesting within the mutants 
 JD2all_glm_wing_size_lev <- lmer(lev_stat ~ Allele_1 + (0 + Allele_1 | WT_Background)
@@ -248,3 +252,8 @@ rsq(all_glm_wing_size_lev)
 rsq(all_glm_wing_size_size)
 
 #model explains a lot of the size effects
+
+
+
+#### Add BB's compound symetric model here ####
+
