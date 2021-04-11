@@ -116,7 +116,9 @@ ggplot(line_means_sd_var_cv, aes(x=length_means, y=length_cv)) +
 
 ggplot(line_means_sd_var_cv, aes(x=Allele_1, y=length_means)) + 
   geom_line(aes(color=WT_Background, group=WT_Background)) + 
-  geom_point(aes(color=WT_Background))
+  geom_point(aes(color=WT_Background)) + 
+  labs(y = "Wing Size mm", x = "Genetic Enviornment") + 
+  theme(legend.position = "none")
 
 ggplot(sd_means_sd_var_cv, aes(x=Allele_1, y=length_means)) +
   geom_line(aes(color=WT_Background, group=WT_Background)) +
@@ -131,7 +133,9 @@ ggplot(bx_means_sd_var_cv, aes(x=Allele_1, y=length_means)) +
 
 ggplot(line_means_sd_var_cv, aes(x=Allele_1, y=length_cv)) + 
   geom_line(aes(color=WT_Background, group=WT_Background)) + 
-  geom_point(aes(color=WT_Background))
+  geom_point(aes(color=WT_Background)) +
+  labs(y = "Line CV", x = "Genetic Enviornment") + 
+  theme(legend.position = "none")
 
 ggplot(sd_means_sd_var_cv, aes(x=Allele_1, y=length_cv)) + 
   geom_line(aes(color=WT_Background, group=WT_Background)) + 
