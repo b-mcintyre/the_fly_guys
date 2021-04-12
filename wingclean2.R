@@ -101,6 +101,10 @@ ggplot(line_means_sd_var_cv, aes(x=length_means, y=length_sd, color=WT_Backgroun
 #display sample size for the dots 
 #bx log trasform would be better --> using levenes in raw form would be fine 
 
+ggplot(line_means_sd_var_cv, aes(x=length_means, y=length_cv, color=Allele_1, size=Individuals)) +
+  geom_point() + labs(y="Line Coefficient of Variaton", x="Line means")
+# kind of looks like a quadratic relationship?
+
 
 ggplot(line_means_sd_var_cv, aes(x=length_means, y=length_sd)) + 
   geom_point(aes(color=Allele_1, size=Individuals)) +
