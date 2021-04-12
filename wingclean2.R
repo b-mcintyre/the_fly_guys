@@ -261,3 +261,22 @@ rsq(all_glm_wing_size_size)
 
 #### Add BB's compound symetric model here ####
 
+
+### DHGLM
+install.packages('dhglm')
+library(dhglm)
+
+model_mu <- DHGLMMODELING(Model="mean",
+                          LinPred = Area_mmsq ~ 1 + mutant + replicate + (1|DGRP))
+
+model_phi <- DHGLMMODELING(Model="dispersion", Link = "log",
+                           LinPred = Area_mmsq ~ 1 + mutant + (1|DGRP))
+
+dh_mod_fit <- dhglmfit(RespDist = "gaussian",
+                       MeanModel = model_mu,
+                       DispersionModel = model_phi,
+                       DataMain = Allele_1)
+
+
+
+
