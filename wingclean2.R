@@ -28,7 +28,8 @@ source("scripts/ID_LeveneStat_V1_2016.R")
 
 
 wing_table_lev_raw <- wing_table_clean %>%
-    mutate ( lev_stat = LeveneDeviates(y = wing_size_mm, group = Allele_1:WT_Background, med = TRUE))
+    mutate ( lev_stat = LeveneDeviates(y = wing_size_mm, 
+                                       group = Allele_1:WT_Background, med = TRUE))
 
 str(wing_table_clean)
 
@@ -100,10 +101,6 @@ ggplot(line_means_sd_var_cv, aes(x=length_means, y=length_sd, color=WT_Backgroun
 
 #display sample size for the dots 
 #bx log trasform would be better --> using levenes in raw form would be fine 
-
-ggplot(line_means_sd_var_cv, aes(x=length_means, y=length_cv, color=Allele_1, size=Individuals)) +
-  geom_point() + labs(y="Line Coefficient of Variaton", x="Line means")
-# kind of looks like a quadratic relationship?
 
 
 ggplot(line_means_sd_var_cv, aes(x=length_means, y=length_sd)) + 
@@ -281,6 +278,66 @@ dh_mod_fit <- dhglmfit(RespDist = "gaussian",
                        DispersionModel = model_phi,
                        DataMain = Allele_1)
 
+... ##need to figure out how to make this work 
+
+###MCMCGLMM for Total Dataset
+prior <- list( R = list(V=diag(9)/9, nu=0.004),  
+               G = list(G1=list(V=diag(9)/9, nu=0.004)))
+MCMCglmmmTotal <- MCMCglmm(fixed = wing_size_mm ~ 1 + Allele_1,
+                           random =~ idh(Allele_1):WT_Background,
+                           rcov = ~idh(Allele_1):units,
+                           data = wing_table_clean, 
+                           nitt = 10000, burnin = 5000, thin = 10)
+summary(MCMCglmmmTotal)
+MCMCglmmmTotal <- MCMCglmm(fixed = wing_size_mm ~ 1 + Allele_1,
+                           random =~ us(Allele_1):WT_Background,
+                           rcov = ~idh(Allele_1):units,
+                           data = wing_table_clean, prior=prior,
+                           nitt = 20000, burnin = 5000, thin = 10)
+summary(MCMCglmmmTotal)
+summary(MCMCglmmmTotal$Sol) # fixed effects
+summary(MCMCglmmmTotal$VCV)
+s <- summary(MCMCglmmmTotal$VCV)$statistics[,"Mean"]; s
+length(s)# extracting posterior means from the variances and covariances
+s <- s[1:81];s 
+G_mat <- matrix(s, nrow = 9, ncol = 9, byrow = T); G_mat
+
+G_cor <- cov2cor(G_mat); G_cor # genetic variance covariance matrix for the (co)variation among DGRP across mutant alleles
 
 
+###MCMCGLMM for SD Dataset
+
+MCMCGlmmSD <- MCMCglmm(fixed = wing_size_mm ~ 1 + Allele_1,
+                      random =~ us(Allele_1):WT_Background,
+                      rcov = ~idh(Allele_1):units,
+                      data = sddat, 
+                      nitt = 20000, burnin = 5000, thin = 10)
+summary(MCMCGlmmSD)
+summary(MCMCGlmmSD$Sol) # fixed effects
+summary(MCMCGlmmSD$VCV)
+sSD <- summary(MCMCGlmmSD$VCV)$statistics[,"Mean"]; sSD
+length(sSD)# extracting posterior means from the variances and covariances
+sSD <- sSD[1:36];sSD
+G_matSD <- matrix(sSD, nrow = 6, ncol = 6, byrow = T); G_matSD
+
+G_corSD <- cov2cor(G_matSD); G_corSD # genetic variance covariance matrix for the (co)variation among DGRP across mutant alleles
+
+
+
+###MCMCGLMM for BX Dataset
+
+MCMCGlmmBX <- MCMCglmm(fixed = wing_size_mm ~ 1 + Allele_1,
+                       random =~ us(Allele_1):WT_Background,
+                       rcov = ~idh(Allele_1):units,
+                       data = bxdat, 
+                       nitt = 20000, burnin = 5000, thin = 10)
+summary(MCMCGlmmBX)
+summary(MCMCGlmmBX$Sol) # fixed effects
+summary(MCMCGlmmBX$VCV) #random effects
+sBX <- summary(MCMCGlmmBX$VCV)$statistics[,"Mean"]; sBX
+length(sBX)# extracting posterior means from the variances and covariances
+sBX<- sBX[1:16];sBX
+G_matBX <- matrix(sBX, nrow = 4, ncol = 4, byrow = T); G_matBX
+
+G_corBX <- cov2cor(G_matBX); G_corBX # genetic variance covariance matrix for the (co)variation among DGRP across mutant alleles
 
