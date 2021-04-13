@@ -326,11 +326,12 @@ G_cor <- cov2cor(G_mat); G_cor # genetic variance covariance matrix for the (co)
 colnames(G_cor) <- c("Wild Type", "bx[1]","bx[2]","bx[3]", "sd[29.1]", "sd[1]", "sd[E3]", "sd[ETX4]", "sd[58d]")
 rownames(G_cor) <- c("Wild Type", "bx[1]","bx[2]","bx[3]", "sd[29.1]", "sd[1]", "sd[E3]", "sd[ETX4]", "sd[58d]")
 
+col <- colorRampPalette(c("#BB4444", "#EE9988", "#FFFFFF", "#77AADD", "#4477AA"))
+
 corrplot(G_cor, type = "lower", method = "color", col=col(200),
          addCoef.col = "black",
          tl.col = "black", tl.srt = 45)
 
-col <- colorRampPalette(c("#BB4444", "#EE9988", "#FFFFFF", "#77AADD", "#4477AA"))
 
 
 ###MCMCGLMM for SD Dataset
