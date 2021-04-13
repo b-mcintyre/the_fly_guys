@@ -4,7 +4,11 @@ library(lme4)
 library(car)
 library(rsq)
 library(emmeans)
+library(MCMCglmm)
+library(dhglm)
+library(corrplot)
 #### Cleaning Data ####
+
 
 # put into rda file once sure is completely clean 
 
@@ -212,11 +216,26 @@ JDall_glm_wing_size_lev <- lmer(lev_stat ~  1 + Allele_1 + Replicate + (0 + Alle
                        data = wing_table_lev_raw)
 
 allFit(JDall_glm_wing_size_lev)
+#majority still singular 
 
 #try nesting within the mutants 
 JD2all_glm_wing_size_lev <- lmer(lev_stat ~ Allele_1 + (0 + Allele_1 | WT_Background)
                               + (1|Allele_1/Replicate),
                               data = wing_table_lev_raw)
+#still singular
+
+#try nesting within backgrounds
+JD2all_glm_wing_size_lev1 <- lmer(lev_stat ~ Allele_1 + (0 + Allele_1 | WT_Background)
+                                + (1|WT_Background/Replicate),
+                                 data = wing_table_lev_raw)
+#still singular 
+
+#try nesting within both
+JD2all_glm_wing_size_lev3 <- lmer(lev_stat ~ Allele_1 + (0 + Allele_1 | WT_Background)
+                                 + (1|Allele_1/Replicate) + (1|WT_Background/Replicate),
+                                 data = wing_table_lev_raw)
+
+#still singular
 
 #Original coding:
 all_glm_wing_size_lev <- lmer(lev_stat ~ Allele_1 + (0 + Allele_1 | WT_Background)
@@ -233,7 +252,7 @@ BBall_glm_wing_size_lev <- lmer(lev_stat ~ Allele_1 + (1|WT_Background/Allele_1)
 # this is where JD said replicate should be treated as a fixed effect because there is only two levels(3ish)
 # which he believes is causing the singularity/problems 
 #BB suggests using (1|background/allele) making the assumption that each of the alleles covary the same
-#this seems like a very strong assumption.
+#this seems like a very strong assumption and not what we are looking for.
 #BB wants to know at what level we are looking into/what the goal of this whole analysis is
 
 all_glm_wing_size_size <- lmer(wing_size_mm ~ 1 + Allele_1 + (0 + Allele_1 | WT_Background) 
@@ -264,8 +283,6 @@ rsq(all_glm_wing_size_size)
 
 
 ### DHGLM
-install.packages('dhglm')
-library(dhglm)
 
 model_mu <- DHGLMMODELING(Model="mean",
                           LinPred = Area_mmsq ~ 1 + mutant + replicate + (1|DGRP))
@@ -280,7 +297,7 @@ dh_mod_fit <- dhglmfit(RespDist = "gaussian",
 
 ... ##need to figure out how to make this work 
 
-###MCMCGLMM for Total Dataset
+##### MCMCGLMM for Total Dataset ####
 prior <- list( R = list(V=diag(9)/9, nu=0.004),  
                G = list(G1=list(V=diag(9)/9, nu=0.004)))
 MCMCglmmmTotal <- MCMCglmm(fixed = wing_size_mm ~ 1 + Allele_1,
@@ -289,6 +306,7 @@ MCMCglmmmTotal <- MCMCglmm(fixed = wing_size_mm ~ 1 + Allele_1,
                            data = wing_table_clean, 
                            nitt = 10000, burnin = 5000, thin = 10)
 summary(MCMCglmmmTotal)
+
 MCMCglmmmTotal <- MCMCglmm(fixed = wing_size_mm ~ 1 + Allele_1,
                            random =~ us(Allele_1):WT_Background,
                            rcov = ~idh(Allele_1):units,
@@ -303,6 +321,16 @@ s <- s[1:81];s
 G_mat <- matrix(s, nrow = 9, ncol = 9, byrow = T); G_mat
 
 G_cor <- cov2cor(G_mat); G_cor # genetic variance covariance matrix for the (co)variation among DGRP across mutant alleles
+
+#visualization
+colnames(G_cor) <- c("Wild Type", "bx[1]","bx[2]","bx[3]", "sd[29.1]", "sd[1]", "sd[E3]", "sd[ETX4]", "sd[58d]")
+rownames(G_cor) <- c("Wild Type", "bx[1]","bx[2]","bx[3]", "sd[29.1]", "sd[1]", "sd[E3]", "sd[ETX4]", "sd[58d]")
+
+corrplot(G_cor, type = "lower", method = "color", col=col(200),
+         addCoef.col = "black",
+         tl.col = "black", tl.srt = 45)
+
+col <- colorRampPalette(c("#BB4444", "#EE9988", "#FFFFFF", "#77AADD", "#4477AA"))
 
 
 ###MCMCGLMM for SD Dataset
