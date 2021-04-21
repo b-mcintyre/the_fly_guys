@@ -373,20 +373,12 @@ G_corBX <- cov2cor(G_matBX); G_corBX # genetic variance covariance matrix for th
 ###Going to just focus on the between mutants variation. Can do one of two things. Either we do GLM using with log transformation and 
 ###and that's it, or we do GLM with and without log transformation and compare the results. Might want to do AICs as well.
 
-m1 <- glmer(wing_size_mm ~ Mutant + (0 + Mutant | DGRP)
-           + (1|Replicate),
-           data = wing_table_clean)
-
 m1 <- lmer(wing_size_mm ~ Allele_1 
            + (1|Replicate) 
            + (1|WT_Background),
            data = wing_table_clean)
 
-m2<-glmer(wing_size_mm ~ Allele_1 
-         + (1|Replicate) 
-         + (1|WT_Background),
-         data = wing_table_clean)
+
 summary(m1)
-summary(m2)
 
        
