@@ -300,11 +300,7 @@ dh_mod_fit <- dhglmfit(RespDist = "gaussian",
 ##### MCMCGLMM for Total Dataset ####
 prior <- list( R = list(V=diag(9)/9, nu=0.004),  
                G = list(G1=list(V=diag(9)/9, nu=0.004)))
-MCMCglmmmTotal <- MCMCglmm(fixed = wing_size_mm ~ 1 + Allele_1,
-                           random =~ idh(Allele_1):WT_Background,
-                           rcov = ~idh(Allele_1):units,
-                           data = wing_table_clean, 
-                           nitt = 10000, burnin = 5000, thin = 10)
+
 summary(MCMCglmmmTotal)
 
 MCMCglmmmTotal <- MCMCglmm(fixed = wing_size_mm ~ 1 + Allele_1,
@@ -370,3 +366,27 @@ G_matBX <- matrix(sBX, nrow = 4, ncol = 4, byrow = T); G_matBX
 
 G_corBX <- cov2cor(G_matBX); G_corBX # genetic variance covariance matrix for the (co)variation among DGRP across mutant alleles
 
+
+
+#### Simplified Model Start ####
+###Changing focus from this point. Decided to simplify what we were looking at. Just going to do a GLM, looking at the fixed effects
+###Going to just focus on the between mutants variation. Can do one of two things. Either we do GLM using with log transformation and 
+###and that's it, or we do GLM with and without log transformation and compare the results. Might want to do AICs as well.
+
+m1 <- glmer(wing_size_mm ~ Mutant + (0 + Mutant | DGRP)
+           + (1|Replicate),
+           data = wing_table_clean)
+
+m1 <- lmer(wing_size_mm ~ Allele_1 
+           + (1|Replicate) 
+           + (1|WT_Background),
+           data = wing_table_clean)
+
+m2<-glmer(wing_size_mm ~ Allele_1 
+         + (1|Replicate) 
+         + (1|WT_Background),
+         data = wing_table_clean)
+summary(m1)
+summary(m2)
+
+       

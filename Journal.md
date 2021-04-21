@@ -63,7 +63,7 @@ y-axis = our measure of variation (CV or levene's statistic)
 
 do for all lines then separate plots via allelic series bx and sd
 
-Have multi-level dataset --> can do 2 step, use a multilevel model (like Double hiearchy?)
+Have multi-level dataset --> can do 2 step, use a multilevel model (like Double hierarchy?)
 see if can do a two step model
 
 1) fit a regression to the within group between individuals
@@ -78,5 +78,52 @@ see if can do a two step model
   Each mutant:background will have different slopes and intercepts
   Each replicate block will have a different intercept but same slope
 
->>>>>>> 11afad4bbc6a005fb41b1b49d67afe76485f6bda
+
+-fit a mixed model for mutants alleles as fixed effects, interaction between mutants and DGRP lines as random effects, and 
+replicates as random effects
+
+-ran into singularity issues with trying to fit the mixed model
+
+April 8th, 2021:
+
+-talked about singularity issue with Dr. Bolker
+- try Dr. Dushoff's advice of treating replicates as fixed effects to resolve singularity issue
+-the above was not successful
+-try to to nest DGRP lines within mutant alleles as per the directive of Dr. Bolker
+-the above was not successful
+
+April 9th, 2021:
+-read email from Dr. Bolker about how he used a rank-reduced model to resolve the singularlity issue
+-figure out what the rank-reduced model is
+-talked about using a bayesian approach instead to circumvent the singularity issue; maybe this is something worth trying,
+at least for the sake of comparison?
+
+April 10th, 2021: 
+-fit the mixed model using the levene statistic instead of wing size 
+-try to fit using the DHGLMM
+-the above was not successful
+-try to figure out a bayesian counterpart for the DHGLMM that could work
+
+April 11th, 2021:
+
+-read about MCMCGLMM and try to fit it with the entire dataset 
+-had issues with the above; need to try to figure out better priors to resolve this
+
+April 12, 2021:
+-were successful in figuring out priors that made the model not run into any issues
+-fit the MCMCGL for each of the individual series as well
+-form correlation plots from the covariance-variance matrices of the mixed models using the wing size  and levene 
+statistic metrics, and also a correlation plot from the covariance-variance matrix of the MCMCGLMM that we fit for the 
+entire dataset using wing size as the metric
+
+April 15th, 2021: 
+-deciding on how to simplify our biological questions, and also our analyses 
+-decided that we're not going to look at within line variation, and just focus on between line variation
+
+April 19th, 2021:
+
+-decided to add a mixed model that's just looking at mutant allele as the fixed effect, with wing size being the metric; put it under a section in the "wingclean2.R", titled "Simplified Model Start"
+
+
+
 
