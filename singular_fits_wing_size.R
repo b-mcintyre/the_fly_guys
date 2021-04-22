@@ -105,3 +105,21 @@ AICtab(m1,m2,m3,m4,m5,
        logLik=TRUE)
 
 ## something a little funny going on here ...
+
+#added correlation plot for rr5 model
+rr_mat <- matrix(v5, nrow = 9, ncol = 9, byrow = T); rr_mat
+
+rr_cor <- cov2cor(rr_mat); rr_cor
+
+#visualization
+colnames(rr_cor) <- c("Wild Type", "bx[1]","bx[2]","bx[3]", "sd[29.1]", "sd[1]", "sd[E3]", "sd[ETX4]", "sd[58d]")
+rownames(rr_cor)<- c("Wild Type", "bx[1]","bx[2]","bx[3]", "sd[29.1]", "sd[1]", "sd[E3]", "sd[ETX4]", "sd[58d]")
+
+col <- colorRampPalette(c("#BB4444", "#EE9988", "#FFFFFF", "#77AADD", "#4477AA"))
+
+
+corrplot(rr_cor, type = "lower", method = "color", col=col(200),
+         addCoef.col = "black",
+         tl.col = "black", tl.srt = 45)
+
+
