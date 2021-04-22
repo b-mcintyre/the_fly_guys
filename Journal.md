@@ -124,6 +124,13 @@ April 19th, 2021:
 
 -decided to add a mixed model that's just looking at mutant allele as the fixed effect, with wing size being the metric; put it under a section in the "wingclean2.R", titled "Simplified Model Start"
 
+April 22, 2021:
+
+- Talked with BB and JD suggested focusing on the within line variation... 
+- So will be doing that, utilizing levene's statistic as a measure of within-line variability. 
+- when extracting the random effects from the rank reduced model noticing that alleles of interest do not have the random coefficients.
+- will try and run with 6 components
+- worked with 6 components, now will create two rank reduced models, one with the bx and one with the sd 
 
 
 
