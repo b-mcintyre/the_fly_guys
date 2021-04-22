@@ -1,3 +1,4 @@
+library(plyr)
 library(tidyverse)
 library(ggplot2)
 library(lme4)
@@ -14,6 +15,16 @@ library(cowplot)
 remotes::install_github("glmmTMB/glmmTMB/glmmTMB#670")
 library(glmmTMB)
 library(lattice)
+library(pbkrtest)
+library(coda)
+library(aods3)
+library(reshape2)
+library(numDeriv)
+library(Hmisc)
+library(plotMCMC)
+library(gridExtra)
+library(R2admb)
+
 
 
 pkgs_CRAN <- c("lme4","MCMCglmm","blme",
@@ -28,8 +39,6 @@ library("devtools")
 
 
 #### Cleaning Data ####
-
-
 
 raw_wing_table <- read_csv("NEW_CD_DGRP_Subset_Data_2019_V2.csv")
 
@@ -180,34 +189,18 @@ Anova(m5)
 
 summary(m5)
 
-fixed_effects <- fixef(m5)
-fixed_effects
+plot(emmeans(m5, "Allele_1"),
+     ylab = "Mutant Allele",
+     xlab = "Within line variability",
+     comparisons = T)
 
-fixed_effects1 <-fixed_effects[1]
-fixed_effects2 <- unlist(fixed_effects1)
-fixed_effects3 <- fixed_effects2[c("cond.(Intercept)","cond.Allele_1bx[1]","cond.Allele_1bx[2]","cond.Allele_1bx[3]","cond.Allele_1sd[29.1]","cond.Allele_1sd[1]","cond.Allele_1sd[E3]","cond.Allele_1sd[ETX4]", "cond.Allele_1sd[58d]")]
+estimates <- coef(m5)$WT_Background
 
-names(fixed_effects3) <- c("sd[+]","bx[1]","bx[2]","bx[3]", "sd[29.1]", "sd[1]", "sd[E3]", "sd[ETX4]", "sd[58d]")
+coef(m5)$WT_Background
 
-fixed_effects3
+coef(m5)$Allele_1
 
-dotchart(fixed_effects3, xlab = "Levene's statistic", ylab = "Mutant Allele")
-
-rand_eff <-ranef(m5)
-rand_eff1<- rand_eff[1]
-rand_eff2<- unlist(rand_eff1)
-rand_eff3 <- rand_eff2[-(121:180)]
-rand_eff3                       
-
-dotchart(rand_eff3, groups = 1:20)
-## super uninformative....
-
-?dotchart()
-
-vc <- VarCorr(m5)
-print(vc, comp = c("Std.Dev."))
-
-
+coef(m5)
 
 #### Rank Reduced sd/bx might get rid of later #### 
 
@@ -246,4 +239,5 @@ m4 <- glmmTMB(lev_stat ~ Allele_1 + rr(0 + Allele_1 | WT_Background,4) +
               data=bxdat,
               control=glmmTMBControl(optCtrl=list(iter.max=1000,eval.max=1000)))
 
+?emmeans
 summary(m4)
