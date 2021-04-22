@@ -128,6 +128,7 @@ April 22, 2021:
 
 - Talked with BB and JD suggested focusing on the within line variation... 
 - So will be doing that, utilizing levene's statistic as a measure of within-line variability. 
+- will utilize the rank reduced model for levene's statistic.
 - when extracting the random effects from the rank reduced model noticing that alleles of interest do not have the random coefficients.
 - will try and run with 6 components
 - worked with 6 components, now will create two rank reduced models, one with the bx and one with the sd 
