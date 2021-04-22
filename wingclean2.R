@@ -301,7 +301,6 @@ dh_mod_fit <- dhglmfit(RespDist = "gaussian",
 prior <- list( R = list(V=diag(9)/9, nu=0.004),  
                G = list(G1=list(V=diag(9)/9, nu=0.004)))
 
-summary(MCMCglmmmTotal)
 
 MCMCglmmmTotal <- MCMCglmm(fixed = wing_size_mm ~ 1 + Allele_1,
                            random =~ us(Allele_1):WT_Background,
@@ -381,4 +380,14 @@ m1 <- lmer(wing_size_mm ~ Allele_1
 
 summary(m1)
 
-       
+VarCorr(m1)
+covcor <- (VarCorr(m1[[1]]))
+
+G_matsimple <- matrix(m5, nrow = 9, ncol = 9, byrow = T); G_matsimple
+
+G_corsimple <- cov2cor(G_matsimple); G_corsimple
+
+
+corrplot(mat, type = "lower", method = "color", col=col(200),
+         addCoef.col = "black",
+         tl.col = "black", tl.srt = 45)
