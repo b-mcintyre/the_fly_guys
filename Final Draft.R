@@ -276,5 +276,5 @@ m4 <- glmmTMB(lev_stat ~ Allele_1 + rr(0 + Allele_1 | WT_Background,4) +
               data=bxdat,
               control=glmmTMBControl(optCtrl=list(iter.max=1000,eval.max=1000)))
 
-?emmeans
+
 summary(m4)
