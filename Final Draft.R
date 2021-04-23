@@ -240,7 +240,7 @@ ggplot(dat_for_rxnnorm, aes(x=Genotype, y=lev_stat)) +
 
 #### Rank Reduced sd/bx might get rid of later #### 
 
-  bxdat <- wing_table_lev_raw %>% 
+bxdat <- wing_table_lev_raw %>% 
   filter(Allele_1 %in% c("OREw", "bx[1]", "bx[2]", "bx[3]")) %>%
   droplevels()
 
@@ -255,7 +255,6 @@ sddat<- wing_table_lev_raw %>%
 
 str(sddat)
 
-
 sddat <- sddat %>% mutate(Replicate = factor(Replicate))
 
 
@@ -268,7 +267,41 @@ m3 <- glmmTMB(lev_stat ~ Allele_1 + rr(0 + Allele_1 | WT_Background,6) +
               control=glmmTMBControl(optCtrl=list(iter.max=1000,eval.max=1000)))
 summary(m3)
 
+plot(emmeans(m3, "Allele_1"),
+     ylab = "Mutant Allele",
+     xlab = "Within line variability",
+     comparisons = T)
 
+
+sdestimates <- coef(m3, complete = F)$cond
+sdestimates2 <- data.frame(sdestimates[1],row.names = )
+
+sdestimates_df <-  data.frame(DGRP =rownames(estimates2),
+                            WT =  (estimates2[,2] + estimates2[,1]),
+                            sd29.1 = (estimates2[,2]  + estimates2[,3]), 
+                            sd1 = (estimates2[,2] + estimates2[,4]), 
+                            sdE3 = (estimates2[,2]  + estimates2[,5]),
+                            sdETX4 = (estimates2[,2]  + estimates2[,6]),
+                            sd58d = (estimates2[,2]  + estimates2[,7]))
+
+
+sddat_for_rxnnorm <- sdestimates_df %>% 
+  pivot_longer(c(WT, sd29.1, sd1, sdE3, sdETX4, sd58d), 
+               names_to = "Genotype", values_to = "lev_stat")
+
+sddat_for_rxnnorm <- sddat_for_rxnnorm %>% 
+  mutate(Genotype = factor(Genotype, 
+                           levels = c("WT","sd29.1", "sd1", "sdE3", 
+                                      "sdETX4", "sd58d")))
+levels(sddat_for_rxnnorm$Genotype)
+  
+ggplot(sddat_for_rxnnorm, aes(x=Genotype, y=lev_stat)) + 
+  geom_line(aes(color=DGRP, group=DGRP)) + 
+  geom_point(aes(color=DGRP)) + 
+  labs(y="Variability(Levene's Statistic)", x= "Mutant Allele") + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
+# how come there is negative numbers.... levene's stat shouldn't alow for this, telling
+# directionality of variability?
 
 m4 <- glmmTMB(lev_stat ~ Allele_1 + rr(0 + Allele_1 | WT_Background,4) +
                 Replicate,
@@ -277,3 +310,8 @@ m4 <- glmmTMB(lev_stat ~ Allele_1 + rr(0 + Allele_1 | WT_Background,4) +
 
 
 summary(m4)
+
+plot(emmeans(m4, "Allele_1"),
+     ylab = "Mutant Allele",
+     xlab = "Within line variability",
+     comparisons = T)
