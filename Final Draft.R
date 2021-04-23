@@ -202,17 +202,16 @@ plot(emmeans(m5, "Allele_1"),
 estimates <- coef(m5, complete = F)$cond
 estimates2 <- data.frame(estimates[1],row.names = )
 
-estimates_df <-  data.frame(DGRP = rownames(estimates2),
-                          WT =  1/(estimates2[,2] + estimates2[,1]),
-                          bx1 = 1/(estimates2[,2] + estimates2[,3]),
-                          bx2 = 1/(estimates2[,2] + estimates2[,4]),
-                          bx3 = 1/(estimates2[,2] + estimates2[,5]),
-                          sd29.1 = 1/(estimates2[,2]  + estimates2[,6]), 
-                          sd1 = 1/(estimates2[,2] + estimates2[,7]), 
-                          sdE3 = 1/(estimates2[,2]  + estimates2[,8]),
-                          sdETX4 = 1/(estimates2[,2]  + estimates2[,9]),
-                          sd58d = 1/(estimates2[,2]  + estimates2[,10]))
-
+estimates_df <-  data.frame(DGRP =rownames(estimates2),
+                          WT =  (estimates2[,2] + estimates2[,1]),
+                          bx1 = (estimates2[,2] + estimates2[,3]),
+                          bx2 = (estimates2[,2] + estimates2[,4]),
+                          bx3 = (estimates2[,2] + estimates2[,5]),
+                          sd29.1 = (estimates2[,2]  + estimates2[,6]), 
+                          sd1 = (estimates2[,2] + estimates2[,7]), 
+                          sdE3 = (estimates2[,2]  + estimates2[,8]),
+                          sdETX4 = (estimates2[,2]  + estimates2[,9]),
+                          sd58d = (estimates2[,2]  + estimates2[,10]))
 
 
 dat_for_rxnnorm <- estimates_df %>% 
