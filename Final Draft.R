@@ -185,22 +185,59 @@ corrplot(rr_cor, type = "lower", method = "color", col=col(200),
          tl.col = "black", tl.srt = 45)
 #### plotting variance ####
 
+#Anova
 Anova(m5)
 
 summary(m5)
+
+
 
 plot(emmeans(m5, "Allele_1"),
      ylab = "Mutant Allele",
      xlab = "Within line variability",
      comparisons = T)
 
-estimates <- coef(m5)$WT_Background
 
-coef(m5)$WT_Background
 
-coef(m5)$Allele_1
+estimates <- coef(m5, complete = F)$cond
+estimates2 <- data.frame(estimates[1],row.names = )
 
-coef(m5)
+estimates_df <-  data.frame(DGRP = rownames(estimates2),
+                          WT =  1/(estimates2[,2] + estimates2[,1]),
+                          bx1 = 1/(estimates2[,2] + estimates2[,3]),
+                          bx2 = 1/(estimates2[,2] + estimates2[,4]),
+                          bx3 = 1/(estimates2[,2] + estimates2[,5]),
+                          sd29.1 = 1/(estimates2[,2]  + estimates2[,6]), 
+                          sd1 = 1/(estimates2[,2] + estimates2[,7]), 
+                          sdE3 = 1/(estimates2[,2]  + estimates2[,8]),
+                          sdETX4 = 1/(estimates2[,2]  + estimates2[,9]),
+                          sd58d = 1/(estimates2[,2]  + estimates2[,10]))
+
+
+
+dat_for_rxnnorm <- estimates_df %>% 
+  pivot_longer(c(WT, bx1, bx2, bx3, sd29.1, sd1, sdE3, sdETX4, sd58d), 
+               names_to = "Genotype", values_to = "lev_stat")
+
+
+dat_for_rxnnorm <-dat_for_rxnnorm %>% 
+  mutate(Genotype = factor(Genotype, 
+                           levels = c("WT", "bx1", "bx2","bx3",
+                                      "sd29.1", "sd1", "sdE3", 
+                                      "sdETX4", "sd58d")))
+levels(dat_for_rxnnorm$Genotype)
+
+ggplot(dat_for_rxnnorm, aes(x=Genotype, y=lev_stat)) + 
+  geom_line(aes(color=DGRP, group=DGRP)) + 
+  geom_point(aes(color=DGRP)) + 
+  labs(y="Levene's Statistic", x= "Mutant Allele") + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
+# these are huge and they are all the same for sd1 then go missing for ETX4/sd58d? 
+# is this due to the use of rank reduction? 
+# are the massive changes due to an outlier? 
+#curious...
+
+
 
 #### Rank Reduced sd/bx might get rid of later #### 
 
