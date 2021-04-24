@@ -84,16 +84,46 @@ line_means_sd_var_cv <- wing_table_lev_raw %>%
 
 #### visualizing data ####
 
-ggplot(line_means_sd_var_cv, aes(x=length_means, y=length_cv, color=Allele_1, size=Individuals)) +geom_point()
-# kind of looks like a quadratic relationship, where alleles with moderate phenotypic effect have the most within line
-# variation 
-
-ggplot(line_means_sd_var_cv, aes(x=length_means, y=length_sd, color=Allele_1, size=Individuals)) + geom_point()
-#See that alleles with moderate phenotypic effct on mean wing length have the largest amoug of variation
-
-ggplot(line_means_sd_var_cv, aes(x=length_means, y=length_sd, color=WT_Background)) + 
+ggplot(line_means_sd_var_cv, 
+       aes(x=length_means, y=length_cv, color=Allele_1, size=Individuals)) +
   geom_point() + 
-  facet_wrap(~Allele_1)
+  labs(x = "Line means (mm)", 
+       y = "Line Standard Deviation", 
+       size = "Fly Sample Size",
+       color = "Mutant Allele") +
+theme(axis.text.x = element_text(size = 12),
+      axis.text.y = element_text(size = 12),
+      legend.text = element_text(size = 10),
+      legend.title = element_text(size= 12))
+
+
+ggplot(line_means_sd_var_cv, 
+       aes(x=length_means, y=length_sd, color=Allele_1, size=Individuals)) + 
+  geom_point() +
+  labs(x = "Line Means (mm)", 
+       y = "Line Coefficient of Variation", 
+       size = "Fly Sample Size", 
+       color = "Mutant Allele") +
+  theme(axis.text.x = element_text(size = 12),
+        axis.text.y = element_text(size = 12),
+        legend.text = element_text(size = 10),
+        legend.title = element_text(size= 12))
+
+
+ggplot(line_means_sd_var_cv, 
+       aes(x=length_means, y=length_cv, color=WT_Background)) + 
+  geom_point() + 
+  facet_wrap(~Allele_1) +
+  labs(x = "Line Means (mm)", 
+       y = "Line coefficent of Variation", 
+       color = "DGRP Background",
+       size = "Fly Sample Size") +
+  theme(axis.text.x = element_text(angle = 90, size = 10), 
+        axis.text.y = element_text(size = 10),
+        legend.text = element_text(size = 10),
+        legend.title = element_text(size= 12))
+
+  
 # seeing by each mutant allele 
 
 ## RXN norm plot for raw mean levene's statistic
@@ -104,14 +134,17 @@ ggplot(line_means_sd_var_cv, aes(x=Allele_1, y=lev_stat)) +
   labs(y="Levene's Statistic", x= "Mutant Allele") + 
   theme(legend.position = "")
 
-#boxplots for ORE, SdE3, and sd58d or wild type, moderate and severe mutational effects 
+#boxplots for sd1, SdE3, and sd58d or wild type, moderate and severe mutational effects 
 
-boxdat <- wd %>% filter(Allele_1 == c("OREw", "sd[E3]", "sd[58d]"))
+boxdat <- wd %>% filter(Allele_1 == c("sd[1]", "sd[E3]", "sd[58d]"))
 
-ggplot(boxdat, aes(x=WT_Background, y=wing_size_mm)) + facet_wrap(~Allele_1) + 
-  geom_boxplot() + theme(axis.text.x=element_text(angle=90)) + labs(x= "DGRP Line", y="Wing size mm")
+ggplot(boxdat, aes(x=WT_Background, y=wing_size_mm)) + 
+  facet_wrap(~Allele_1) + 
+  geom_boxplot() + 
+  theme(axis.text.x=element_text(angle=90, size = 9)) + 
+  labs(x= "DGRP Line", y="Wing size mm")
 
-# see more variation in wing size in the moderate allele than other alleles 
+# see more variation in the moderate allele than other alleles 
 
 #### multilevel modeling ####
 factor(wing_table_clean$Replicate)
@@ -273,6 +306,7 @@ plot(emmeans(m3, "Allele_1"),
      comparisons = T)
 
 
+
 sdestimates <- coef(m3, complete = F)$cond
 sdestimates2 <- data.frame(sdestimates[1],row.names = )
 
@@ -315,3 +349,5 @@ plot(emmeans(m4, "Allele_1"),
      ylab = "Mutant Allele",
      xlab = "Within line variability",
      comparisons = T)
+
+
