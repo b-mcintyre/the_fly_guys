@@ -136,30 +136,17 @@ ggplot(boxdat, aes(x=WT_Background, y=wing_size_mm)) +
 
 #### multilevel modeling ####
 
+#Original coding:
+all_glm_wing_size_lev <- lmer(lev_stat ~ Allele_1 + (0 + Allele_1 | WT_Background)
+                              + (1|Replicate),
+                              data = wing_table_lev_raw)
+
 #JD code suggestion results in a warning message of checking convergence 
 JDall_glm_wing_size_lev <- lmer(lev_stat ~  1 + Allele_1 + Replicate + (0 + Allele_1 | WT_Background),
                        data = wing_table_lev_raw)
 
 allFit(JDall_glm_wing_size_lev)
 #majority still singular 
-
-#try nesting within the mutants 
-JD2all_glm_wing_size_lev <- lmer(lev_stat ~ Allele_1 + (0 + Allele_1 | WT_Background)
-                              + (1|Allele_1/Replicate),
-                              data = wing_table_lev_raw)
-#still singular
-
-#try nesting within backgrounds
-JD2all_glm_wing_size_lev1 <- lmer(lev_stat ~ Allele_1 + (0 + Allele_1 | WT_Background)
-                                + (1|WT_Background/Replicate),
-                                 data = wing_table_lev_raw)
-#still singular 
-
-
-#Original coding:
-all_glm_wing_size_lev <- lmer(lev_stat ~ Allele_1 + (0 + Allele_1 | WT_Background)
-                              + (1|Replicate),
-                              data = wing_table_lev_raw)
 
 
 # this is where JD said replicate should be treated as a fixed effect because there is only two levels(3ish)
@@ -179,7 +166,6 @@ summary(m5)
 Anova(m5, type = "III")
 
 
-
 # correlation matrix
 v5 <- cov2cor(VarCorr(m5)$cond[[1]])
 
@@ -188,8 +174,8 @@ rr_mat <- matrix(v5, nrow = 9, ncol = 9, byrow = T); rr_mat
 rr_cor <- cov2cor(rr_mat); rr_cor
 
 #visualization of covariance matrix
-colnames(rr_cor) <- c("Wild Type", "bx[1]","bx[2]","bx[3]", "sd[29.1]", "sd[1]", "sd[E3]", "sd[ETX4]", "sd[58d]")
-rownames(rr_cor)<- c("Wild Type", "bx[1]","bx[2]","bx[3]", "sd[29.1]", "sd[1]", "sd[E3]", "sd[ETX4]", "sd[58d]")
+colnames(rr_cor) <- c("OREw", "bx[1]","bx[2]","bx[3]", "sd[29.1]", "sd[1]", "sd[E3]", "sd[ETX4]", "sd[58d]")
+rownames(rr_cor)<- c("OREw", "bx[1]","bx[2]","bx[3]", "sd[29.1]", "sd[1]", "sd[E3]", "sd[ETX4]", "sd[58d]")
 
 col <- colorRampPalette(c("#BB4444", "#EE9988", "#FFFFFF", "#77AADD", "#4477AA"))
 
