@@ -206,7 +206,7 @@ plot(emmeans(m5, "Allele_1", "Replicate"),
      ylab = "Mutant Allele",
      xlab = "Within line variability",
      comparison = T,
-     horizontal = F)
+     horizontal = T)
 
 #Rxn norm of the mean plot
 
