@@ -174,9 +174,10 @@ m5 <- glmmTMB(lev_stat ~ Allele_1 + rr(0 + Allele_1 | WT_Background,5) +
               control=glmmTMBControl(optCtrl=list(iter.max=1000,eval.max=1000)))
 
 summary(m5)
-summary(wd)
 
-plot(emtrends(m5))
+#Anova
+Anova(m5, type = "III")
+
 
 
 # correlation matrix
@@ -198,8 +199,6 @@ corrplot(rr_cor, type = "lower", method = "color", col=col(200),
          tl.col = "black", tl.srt = 45)
 #### plotting variance ####
 
-#Anova
-Anova(m5, type = "III")
 
 ## emmeans plot
 plot(emmeans(m5, "Allele_1", "Replicate"),
