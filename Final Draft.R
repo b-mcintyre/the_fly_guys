@@ -13,8 +13,10 @@ library(Matrix)
 library(cowplot)
 library(emmeans)
 library(effects)
-remotes::install_github("glmmTMB/glmmTMB/glmmTMB#670")
-library(glmmTMB)
+## BMB: don't auto-install
+while (!require("glmmTMB")) {
+    remotes::install_github("glmmTMB/glmmTMB")
+}
 library(lattice)
 library(coda)
 
@@ -174,8 +176,10 @@ rr_mat <- matrix(v5, nrow = 9, ncol = 9, byrow = T); rr_mat
 rr_cor <- cov2cor(rr_mat); rr_cor
 
 #visualization of covariance matrix
-colnames(rr_cor) <- c("OREw", "bx[1]","bx[2]","bx[3]", "sd[29.1]", "sd[1]", "sd[E3]", "sd[ETX4]", "sd[58d]")
-rownames(rr_cor)<- c("OREw", "bx[1]","bx[2]","bx[3]", "sd[29.1]", "sd[1]", "sd[E3]", "sd[ETX4]", "sd[58d]")
+colnames(rr_cor) <- rownames(rr_cor) <-
+    c("OREw", "bx[1]","bx[2]","bx[3]", "sd[29.1]", "sd[1]", "sd[E3]", "sd[ETX4]", "sd[58d]")
+## BMB: why repeat this vector?
+## rownames(rr_cor)<- c("OREw", "bx[1]","bx[2]","bx[3]", "sd[29.1]", "sd[1]", "sd[E3]", "sd[ETX4]", "sd[58d]")
 
 col <- colorRampPalette(c("#BB4444", "#EE9988", "#FFFFFF", "#77AADD", "#4477AA"))
 
@@ -190,8 +194,8 @@ corrplot(rr_cor, type = "lower", method = "color", col=col(200),
 plot(emmeans(m5, "Allele_1", "Replicate"),
      ylab = "Mutant Allele",
      xlab = "Within line variability",
-     comparison = T,
-     horizontal = T)
+     comparison = TRUE,
+     horizontal = TRUE)
 
 #Rxn norm of the mean plot
 
@@ -200,7 +204,7 @@ summary(m5)
 ranef(m5)
 coef(m5)
 
-
+    
 estimates <- coef(m5)$cond
 estimates2 <- data.frame(estimates[1])
 
@@ -323,3 +327,26 @@ plot(emmeans(m4, "Allele_1"),
      comparisons = T)
 
 
+
+###
+RNdat <- with(wd,
+              expand.grid(Allele_1=levels(Allele_1), WT_Background=levels(WT_Background)))
+
+## this takes a little while
+pp <- predict(m5, newdata=data.frame(RNdat, Replicate="R1"), se.fit=TRUE)
+
+RNdat <- with(pp,
+              data.frame(RNdat,
+                         lev_stat=fit,
+                         lev_stat_lwr=fit-2*se.fit,
+                         lev_stat_upr=fit+2*se.fit))
+
+theme_set(theme_bw())
+print(ggplot(RNdat, aes(x=Allele_1, y=lev_stat,color=WT_Background))
+    + geom_line(aes(group=WT_Background))
+    + geom_point()
+    + geom_ribbon(aes(ymin=lev_stat_lwr, ymax=lev_stat_upr, fill=WT_Background,
+                      group=WT_Background),
+                  colour=NA, alpha=0.05)
+    + labs(y="Within-line variability\n(Levene statistic)", x= "Mutant Allele")
+    )
