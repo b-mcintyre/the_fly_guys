@@ -6,36 +6,24 @@ library(car)
 library(corrplot)
 library(MASS)
 library(blme)
-library(MCMCglmm)
 library(rstanarm)
 library(broom.mixed)
 library(dotwhisker)
 library(Matrix)
 library(cowplot)
+library(emmeans)
+library(effects)
 remotes::install_github("glmmTMB/glmmTMB/glmmTMB#670")
 library(glmmTMB)
 library(lattice)
-library(pbkrtest)
 library(coda)
-library(aods3)
-library(reshape2)
-library(numDeriv)
-library(Hmisc)
-library(plotMCMC)
-library(gridExtra)
-library(R2admb)
 
 
 
-pkgs_CRAN <- c("lme4","MCMCglmm","blme",
-               "pbkrtest","coda","aods3","bbmle","ggplot2",
-               "reshape2","plyr","numDeriv","Hmisc",
-               "plotMCMC","gridExtra","R2admb",
-               "broom.mixed","dotwhisker")
-install.packages(pkgs_CRAN)
-rr <- "http://www.math.mcmaster.ca/bolker/R"
-install.packages("glmmADMB",type="source",repos=rr)
-library("devtools")
+
+
+
+
 
 
 #### Cleaning Data ####
@@ -147,7 +135,6 @@ ggplot(boxdat, aes(x=WT_Background, y=wing_size_mm)) +
 # see more variation in the moderate allele than other alleles 
 
 #### multilevel modeling ####
-factor(wing_table_clean$Replicate)
 
 #JD code suggestion results in a warning message of checking convergence 
 JDall_glm_wing_size_lev <- lmer(lev_stat ~  1 + Allele_1 + Replicate + (0 + Allele_1 | WT_Background),
@@ -168,35 +155,28 @@ JD2all_glm_wing_size_lev1 <- lmer(lev_stat ~ Allele_1 + (0 + Allele_1 | WT_Backg
                                  data = wing_table_lev_raw)
 #still singular 
 
-#try nesting within both
-JD2all_glm_wing_size_lev3 <- lmer(lev_stat ~ Allele_1 + (0 + Allele_1 | WT_Background)
-                                 + (1|Allele_1/Replicate) + (1|WT_Background/Replicate),
-                                 data = wing_table_lev_raw)
-
-#still singular
 
 #Original coding:
 all_glm_wing_size_lev <- lmer(lev_stat ~ Allele_1 + (0 + Allele_1 | WT_Background)
                               + (1|Replicate),
                               data = wing_table_lev_raw)
 
-#BB suggestion:
-
-BBall_glm_wing_size_lev <- lmer(lev_stat ~ Allele_1 + (1|WT_Background/Allele_1)
-                                + (1|Replicate),
-                                data= wing_table_lev_raw)
-#still singular 
 
 # this is where JD said replicate should be treated as a fixed effect because there is only two levels(3ish)
 # which he believes is causing the singularity/problems 
 
-#### BB's rank reduced model with  components ####
+#### BB's rank reduced model with 5 components ####
 
 
 m5 <- glmmTMB(lev_stat ~ Allele_1 + rr(0 + Allele_1 | WT_Background,5) +
                 Replicate,
               data=wd,
               control=glmmTMBControl(optCtrl=list(iter.max=1000,eval.max=1000)))
+
+summary(m5)
+summary(wd)
+
+plot(emtrends(m5))
 
 
 # correlation matrix
@@ -206,7 +186,7 @@ rr_mat <- matrix(v5, nrow = 9, ncol = 9, byrow = T); rr_mat
 
 rr_cor <- cov2cor(rr_mat); rr_cor
 
-#visualization
+#visualization of covariance matrix
 colnames(rr_cor) <- c("Wild Type", "bx[1]","bx[2]","bx[3]", "sd[29.1]", "sd[1]", "sd[E3]", "sd[ETX4]", "sd[58d]")
 rownames(rr_cor)<- c("Wild Type", "bx[1]","bx[2]","bx[3]", "sd[29.1]", "sd[1]", "sd[E3]", "sd[ETX4]", "sd[58d]")
 
@@ -219,21 +199,25 @@ corrplot(rr_cor, type = "lower", method = "color", col=col(200),
 #### plotting variance ####
 
 #Anova
-Anova(m5)
+Anova(m5, type = "III")
+
+## emmeans plot
+plot(emmeans(m5, "Allele_1", "Replicate"),
+     ylab = "Mutant Allele",
+     xlab = "Within line variability",
+     comparison = T,
+     horizontal = F)
+
+#Rxn norm of the mean plot
 
 summary(m5)
 
+ranef(m5)
+coef(m5)
 
 
-plot(emmeans(m5, "Allele_1"),
-     ylab = "Mutant Allele",
-     xlab = "Within line variability",
-     comparisons = T)
-
-
-
-estimates <- coef(m5, complete = F)$cond
-estimates2 <- data.frame(estimates[1],row.names = )
+estimates <- coef(m5)$cond
+estimates2 <- data.frame(estimates[1])
 
 estimates_df <-  data.frame(DGRP =rownames(estimates2),
                           WT =  (estimates2[,2] + estimates2[,1]),
@@ -270,7 +254,6 @@ ggplot(dat_for_rxnnorm, aes(x=Genotype, y=lev_stat)) +
 #curious...
 
 
-
 #### Rank Reduced sd/bx might get rid of later #### 
 
 bxdat <- wing_table_lev_raw %>% 
@@ -299,6 +282,10 @@ m3 <- glmmTMB(lev_stat ~ Allele_1 + rr(0 + Allele_1 | WT_Background,6) +
               data=sddat,
               control=glmmTMBControl(optCtrl=list(iter.max=1000,eval.max=1000)))
 summary(m3)
+
+coef(m5)$cond
+ranef(m5)$cond
+#still same issue is it something to do with my dataset?
 
 plot(emmeans(m3, "Allele_1"),
      ylab = "Mutant Allele",
