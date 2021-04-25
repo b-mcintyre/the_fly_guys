@@ -341,12 +341,27 @@ RNdat <- with(pp,
                          lev_stat_lwr=fit-2*se.fit,
                          lev_stat_upr=fit+2*se.fit))
 
+library(colorspace)
 theme_set(theme_bw())
-print(ggplot(RNdat, aes(x=Allele_1, y=lev_stat,color=WT_Background))
+gg1 <- (ggplot(RNdat, aes(x=Allele_1, y=lev_stat,color=WT_Background))
     + geom_line(aes(group=WT_Background))
     + geom_point()
     + geom_ribbon(aes(ymin=lev_stat_lwr, ymax=lev_stat_upr, fill=WT_Background,
                       group=WT_Background),
                   colour=NA, alpha=0.05)
     + labs(y="Within-line variability\n(Levene statistic)", x= "Mutant Allele")
+)
+
+print(gg1 
+    + scale_colour_discrete_qualitative()
+    + scale_fill_discrete_qualitative()
     )
+
+library(hues)
+print(gg1
+      + scale_colour_iwanthue()
+      )
+
+## nice idea but needs work.
+library(directlabels)
+direct.label(gg1, "last.bumpup")
