@@ -6,36 +6,19 @@ library(car)
 library(corrplot)
 library(MASS)
 library(blme)
-library(MCMCglmm)
 library(rstanarm)
 library(broom.mixed)
 library(dotwhisker)
 library(Matrix)
 library(cowplot)
-remotes::install_github("glmmTMB/glmmTMB/glmmTMB#670")
-library(glmmTMB)
+library(emmeans)
+library(effects)
+while (!require("glmmTMB")) {
+    remotes::install_github("glmmTMB/glmmTMB")
+}
 library(lattice)
-library(pbkrtest)
 library(coda)
-library(aods3)
-library(reshape2)
-library(numDeriv)
-library(Hmisc)
-library(plotMCMC)
-library(gridExtra)
-library(R2admb)
 
-
-
-pkgs_CRAN <- c("lme4","MCMCglmm","blme",
-               "pbkrtest","coda","aods3","bbmle","ggplot2",
-               "reshape2","plyr","numDeriv","Hmisc",
-               "plotMCMC","gridExtra","R2admb",
-               "broom.mixed","dotwhisker")
-install.packages(pkgs_CRAN)
-rr <- "http://www.math.mcmaster.ca/bolker/R"
-install.packages("glmmADMB",type="source",repos=rr)
-library("devtools")
 
 
 #### Cleaning Data ####
@@ -84,16 +67,46 @@ line_means_sd_var_cv <- wing_table_lev_raw %>%
 
 #### visualizing data ####
 
-ggplot(line_means_sd_var_cv, aes(x=length_means, y=length_cv, color=Allele_1, size=Individuals)) +geom_point()
-# kind of looks like a quadratic relationship, where alleles with moderate phenotypic effect have the most within line
-# variation 
-
-ggplot(line_means_sd_var_cv, aes(x=length_means, y=length_sd, color=Allele_1, size=Individuals)) + geom_point()
-#See that alleles with moderate phenotypic effct on mean wing length have the largest amoug of variation
-
-ggplot(line_means_sd_var_cv, aes(x=length_means, y=length_sd, color=WT_Background)) + 
+ggplot(line_means_sd_var_cv, 
+       aes(x=length_means, y=length_cv, color=Allele_1, size=Individuals)) +
   geom_point() + 
-  facet_wrap(~Allele_1)
+  labs(x = "Line means (mm)", 
+       y = "Line Standard Deviation", 
+       size = "Fly Sample Size",
+       color = "Mutant Allele") +
+theme(axis.text.x = element_text(size = 12),
+      axis.text.y = element_text(size = 12),
+      legend.text = element_text(size = 10),
+      legend.title = element_text(size= 12))
+
+
+ggplot(line_means_sd_var_cv, 
+       aes(x=length_means, y=length_sd, color=Allele_1, size=Individuals)) + 
+  geom_point() +
+  labs(x = "Line Means (mm)", 
+       y = "Line Coefficient of Variation", 
+       size = "Fly Sample Size", 
+       color = "Mutant Allele") +
+  theme(axis.text.x = element_text(size = 12),
+        axis.text.y = element_text(size = 12),
+        legend.text = element_text(size = 10),
+        legend.title = element_text(size= 12))
+
+
+ggplot(line_means_sd_var_cv, 
+       aes(x=length_means, y=length_cv, color=WT_Background)) + 
+  geom_point() + 
+  facet_wrap(~Allele_1) +
+  labs(x = "Line Means (mm)", 
+       y = "Line coefficent of Variation", 
+       color = "DGRP Background",
+       size = "Fly Sample Size") +
+  theme(axis.text.x = element_text(angle = 90, size = 10), 
+        axis.text.y = element_text(size = 10),
+        legend.text = element_text(size = 10),
+        legend.title = element_text(size= 12))
+
+  
 # seeing by each mutant allele 
 
 ## RXN norm plot for raw mean levene's statistic
@@ -101,20 +114,27 @@ ggplot(line_means_sd_var_cv, aes(x=length_means, y=length_sd, color=WT_Backgroun
 ggplot(line_means_sd_var_cv, aes(x=Allele_1, y=lev_stat)) + 
   geom_line(aes(color=WT_Background, group=WT_Background)) + 
   geom_point(aes(color=WT_Background)) + 
-  labs(y="Levene's Statistic", x= "Mutant Allele") + 
+  labs(y="Within-line variation\n(Levene's statistic)", x= "Mutant Allele") + 
   theme(legend.position = "")
 
-#boxplots for ORE, SdE3, and sd58d or wild type, moderate and severe mutational effects 
+#boxplots for sd1, SdE3, and sd58d for weak, moderate and severe mutational effects 
 
-boxdat <- wd %>% filter(Allele_1 == c("OREw", "sd[E3]", "sd[58d]"))
+boxdat <- wd %>% filter(Allele_1 == c("sd[1]", "sd[E3]", "sd[58d]"))
 
-ggplot(boxdat, aes(x=WT_Background, y=wing_size_mm)) + facet_wrap(~Allele_1) + 
-  geom_boxplot() + theme(axis.text.x=element_text(angle=90)) + labs(x= "DGRP Line", y="Wing size mm")
+ggplot(boxdat, aes(x=WT_Background, y=wing_size_mm)) + 
+  facet_wrap(~Allele_1) + 
+  geom_boxplot() + 
+  theme(axis.text.x=element_text(angle=90, size = 9)) + 
+  labs(x= "DGRP line", y="Wing size (mm)")
 
-# see more variation in wing size in the moderate allele than other alleles 
+# see more variation in the moderate allele than other alleles 
 
 #### multilevel modeling ####
-factor(wing_table_clean$Replicate)
+
+#Original coding:
+all_glm_wing_size_lev <- lmer(lev_stat ~ Allele_1 + (0 + Allele_1 | WT_Background)
+                              + (1|Replicate),
+                              data = wing_table_lev_raw)
 
 #JD code suggestion results in a warning message of checking convergence 
 JDall_glm_wing_size_lev <- lmer(lev_stat ~  1 + Allele_1 + Replicate + (0 + Allele_1 | WT_Background),
@@ -123,41 +143,11 @@ JDall_glm_wing_size_lev <- lmer(lev_stat ~  1 + Allele_1 + Replicate + (0 + Alle
 allFit(JDall_glm_wing_size_lev)
 #majority still singular 
 
-#try nesting within the mutants 
-JD2all_glm_wing_size_lev <- lmer(lev_stat ~ Allele_1 + (0 + Allele_1 | WT_Background)
-                              + (1|Allele_1/Replicate),
-                              data = wing_table_lev_raw)
-#still singular
-
-#try nesting within backgrounds
-JD2all_glm_wing_size_lev1 <- lmer(lev_stat ~ Allele_1 + (0 + Allele_1 | WT_Background)
-                                + (1|WT_Background/Replicate),
-                                 data = wing_table_lev_raw)
-#still singular 
-
-#try nesting within both
-JD2all_glm_wing_size_lev3 <- lmer(lev_stat ~ Allele_1 + (0 + Allele_1 | WT_Background)
-                                 + (1|Allele_1/Replicate) + (1|WT_Background/Replicate),
-                                 data = wing_table_lev_raw)
-
-#still singular
-
-#Original coding:
-all_glm_wing_size_lev <- lmer(lev_stat ~ Allele_1 + (0 + Allele_1 | WT_Background)
-                              + (1|Replicate),
-                              data = wing_table_lev_raw)
-
-#BB suggestion:
-
-BBall_glm_wing_size_lev <- lmer(lev_stat ~ Allele_1 + (1|WT_Background/Allele_1)
-                                + (1|Replicate),
-                                data= wing_table_lev_raw)
-#still singular 
 
 # this is where JD said replicate should be treated as a fixed effect because there is only two levels(3ish)
 # which he believes is causing the singularity/problems 
 
-#### BB's rank reduced model with  components ####
+#### BMB's rank reduced model with 5 components ####
 
 
 m5 <- glmmTMB(lev_stat ~ Allele_1 + rr(0 + Allele_1 | WT_Background,5) +
@@ -165,17 +155,22 @@ m5 <- glmmTMB(lev_stat ~ Allele_1 + rr(0 + Allele_1 | WT_Background,5) +
               data=wd,
               control=glmmTMBControl(optCtrl=list(iter.max=1000,eval.max=1000)))
 
+saveRDS(m5, file = "5Rank_Reduced_Model.rds")
 
-# correlation matrix
+#### Anova ####
+Anova(m5, type = "III")
+
+
+#### correlation matrix ####
 v5 <- cov2cor(VarCorr(m5)$cond[[1]])
 
 rr_mat <- matrix(v5, nrow = 9, ncol = 9, byrow = T); rr_mat
 
 rr_cor <- cov2cor(rr_mat); rr_cor
 
-#visualization
-colnames(rr_cor) <- c("Wild Type", "bx[1]","bx[2]","bx[3]", "sd[29.1]", "sd[1]", "sd[E3]", "sd[ETX4]", "sd[58d]")
-rownames(rr_cor)<- c("Wild Type", "bx[1]","bx[2]","bx[3]", "sd[29.1]", "sd[1]", "sd[E3]", "sd[ETX4]", "sd[58d]")
+#visualization of covariance matrix
+colnames(rr_cor) <- rownames(rr_cor) <-
+    c("OREw", "bx[1]","bx[2]","bx[3]", "sd[29.1]", "sd[1]", "sd[E3]", "sd[ETX4]", "sd[58d]")
 
 col <- colorRampPalette(c("#BB4444", "#EE9988", "#FFFFFF", "#77AADD", "#4477AA"))
 
@@ -183,36 +178,35 @@ col <- colorRampPalette(c("#BB4444", "#EE9988", "#FFFFFF", "#77AADD", "#4477AA")
 corrplot(rr_cor, type = "lower", method = "color", col=col(200),
          addCoef.col = "black",
          tl.col = "black", tl.srt = 45)
-#### plotting variance ####
 
-#Anova
-Anova(m5)
+#### emmeans plot ####
+plot(emmeans(m5, "Allele_1", "Replicate"),
+     ylab = "Mutant Allele",
+     xlab = "Within-line variability\n(Levene statistic)",
+     comparison = TRUE,
+     horizontal = TRUE)
+
+#### Rxn norm of the mean plot using estimates ####
 
 summary(m5)
 
+ranef(m5)
+coef(m5)
 
+    
+estimates <- coef(m5)$cond
+estimates2 <- data.frame(estimates[1])
 
-plot(emmeans(m5, "Allele_1"),
-     ylab = "Mutant Allele",
-     xlab = "Within line variability",
-     comparisons = T)
-
-
-
-estimates <- coef(m5, complete = F)$cond
-estimates2 <- data.frame(estimates[1],row.names = )
-
-estimates_df <-  data.frame(DGRP = rownames(estimates2),
-                          WT =  1/(estimates2[,2] + estimates2[,1]),
-                          bx1 = 1/(estimates2[,2] + estimates2[,3]),
-                          bx2 = 1/(estimates2[,2] + estimates2[,4]),
-                          bx3 = 1/(estimates2[,2] + estimates2[,5]),
-                          sd29.1 = 1/(estimates2[,2]  + estimates2[,6]), 
-                          sd1 = 1/(estimates2[,2] + estimates2[,7]), 
-                          sdE3 = 1/(estimates2[,2]  + estimates2[,8]),
-                          sdETX4 = 1/(estimates2[,2]  + estimates2[,9]),
-                          sd58d = 1/(estimates2[,2]  + estimates2[,10]))
-
+estimates_df <-  data.frame(DGRP =rownames(estimates2),
+                          WT =  (estimates2[,2] + estimates2[,1]),
+                          bx1 = (estimates2[,2] + estimates2[,3]),
+                          bx2 = (estimates2[,2] + estimates2[,4]),
+                          bx3 = (estimates2[,2] + estimates2[,5]),
+                          sd29.1 = (estimates2[,2]  + estimates2[,6]), 
+                          sd1 = (estimates2[,2] + estimates2[,7]), 
+                          sdE3 = (estimates2[,2]  + estimates2[,8]),
+                          sdETX4 = (estimates2[,2]  + estimates2[,9]),
+                          sd58d = (estimates2[,2]  + estimates2[,10]))
 
 
 dat_for_rxnnorm <- estimates_df %>% 
@@ -233,48 +227,44 @@ ggplot(dat_for_rxnnorm, aes(x=Genotype, y=lev_stat)) +
   labs(y="Levene's Statistic", x= "Mutant Allele") + 
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
 # these are huge and they are all the same for sd1 then go missing for ETX4/sd58d? 
-# is this due to the use of rank reduction? 
-# are the massive changes due to an outlier? 
-#curious...
+# is this due to the use of rank reduction I believe.
 
+#### BMB method utilizing the model to predict the outcomes to create a reaction norm graph ####
 
+RNdat <- with(wd,
+              expand.grid(Allele_1=levels(Allele_1), WT_Background=levels(WT_Background)))
 
-#### Rank Reduced sd/bx might get rid of later #### 
+## this takes a little while
+pp <- predict(m5, newdata=data.frame(RNdat, Replicate="R1"), se.fit=TRUE)
 
-  bxdat <- wing_table_lev_raw %>% 
-  filter(Allele_1 %in% c("OREw", "bx[1]", "bx[2]", "bx[3]")) %>%
-  droplevels()
+RNdat <- with(pp,
+              data.frame(RNdat,
+                         lev_stat=fit,
+                         lev_stat_lwr=fit-2*se.fit,
+                         lev_stat_upr=fit+2*se.fit))
 
-  
-str(bxdat)
+library(colorspace)
+theme_set(theme_bw())
+gg1 <- (ggplot(RNdat, aes(x=Allele_1, y=lev_stat,color=WT_Background))
+        + geom_line(aes(group=WT_Background))
+        + geom_point()
+        + geom_ribbon(aes(ymin=lev_stat_lwr, ymax=lev_stat_upr, fill=WT_Background,
+                          group=WT_Background),
+                      colour=NA, alpha=0.05)
+        + labs(y="Within-line variability\n(Levene statistic)", x= "Mutant Allele")
+        + theme(legend.position = "")
+)
 
-levels(bxdat$Allele_1)
+print(gg1 
+      + scale_colour_discrete_qualitative()
+      + scale_fill_discrete_qualitative()
+)
 
-sddat<- wing_table_lev_raw %>% 
-  filter(Allele_1 %in% c("OREw", "sd[1]", "sd[29.1]", "sd[58d]", "sd[E3]", "sd[ETX4]")) %>%
-  droplevels()
+library(hues)
+print(gg1
+      + scale_colour_iwanthue()
+)
 
-str(sddat)
-
-
-sddat <- sddat %>% mutate(Replicate = factor(Replicate))
-
-
-bxdat <- bxdat %>% mutate(Replicate = factor(Replicate))
-
-
-m3 <- glmmTMB(lev_stat ~ Allele_1 + rr(0 + Allele_1 | WT_Background,6) +
-                Replicate,
-              data=sddat,
-              control=glmmTMBControl(optCtrl=list(iter.max=1000,eval.max=1000)))
-summary(m3)
-
-
-
-m4 <- glmmTMB(lev_stat ~ Allele_1 + rr(0 + Allele_1 | WT_Background,4) +
-                Replicate,
-              data=bxdat,
-              control=glmmTMBControl(optCtrl=list(iter.max=1000,eval.max=1000)))
-
-
-summary(m4)
+## nice idea but needs work.
+library(directlabels)
+direct.label(gg1, "last.bumpup")
