@@ -21,12 +21,6 @@ library(coda)
 
 
 
-
-
-
-
-
-
 #### Cleaning Data ####
 
 raw_wing_table <- read_csv("NEW_CD_DGRP_Subset_Data_2019_V2.csv")
@@ -131,7 +125,7 @@ ggplot(boxdat, aes(x=WT_Background, y=wing_size_mm)) +
   facet_wrap(~Allele_1) + 
   geom_boxplot() + 
   theme(axis.text.x=element_text(angle=90, size = 9)) + 
-  labs(x= "DGRP Line", y="Wing size mm")
+  labs(x= "DGRP line", y="Wing size (mm)")
 
 # see more variation in the moderate allele than other alleles 
 
@@ -153,7 +147,7 @@ allFit(JDall_glm_wing_size_lev)
 # this is where JD said replicate should be treated as a fixed effect because there is only two levels(3ish)
 # which he believes is causing the singularity/problems 
 
-#### BB's rank reduced model with 5 components ####
+#### BMB's rank reduced model with 5 components ####
 
 
 m5 <- glmmTMB(lev_stat ~ Allele_1 + rr(0 + Allele_1 | WT_Background,5) +
