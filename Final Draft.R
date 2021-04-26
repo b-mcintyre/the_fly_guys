@@ -13,7 +13,6 @@ library(Matrix)
 library(cowplot)
 library(emmeans)
 library(effects)
-## BMB: don't auto-install
 while (!require("glmmTMB")) {
     remotes::install_github("glmmTMB/glmmTMB")
 }
@@ -121,10 +120,10 @@ ggplot(line_means_sd_var_cv,
 ggplot(line_means_sd_var_cv, aes(x=Allele_1, y=lev_stat)) + 
   geom_line(aes(color=WT_Background, group=WT_Background)) + 
   geom_point(aes(color=WT_Background)) + 
-  labs(y="Levene's Statistic", x= "Mutant Allele") + 
+  labs(y="Within-line variation\n(Levene's statistic)", x= "Mutant Allele") + 
   theme(legend.position = "")
 
-#boxplots for sd1, SdE3, and sd58d or wild type, moderate and severe mutational effects 
+#boxplots for sd1, SdE3, and sd58d for weak, moderate and severe mutational effects 
 
 boxdat <- wd %>% filter(Allele_1 == c("sd[1]", "sd[E3]", "sd[58d]"))
 
@@ -162,13 +161,13 @@ m5 <- glmmTMB(lev_stat ~ Allele_1 + rr(0 + Allele_1 | WT_Background,5) +
               data=wd,
               control=glmmTMBControl(optCtrl=list(iter.max=1000,eval.max=1000)))
 
-summary(m5)
+saveRDS(m5, file = "5Rank_Reduced_Model.rds")
 
-#Anova
+#### Anova ####
 Anova(m5, type = "III")
 
 
-# correlation matrix
+#### correlation matrix ####
 v5 <- cov2cor(VarCorr(m5)$cond[[1]])
 
 rr_mat <- matrix(v5, nrow = 9, ncol = 9, byrow = T); rr_mat
@@ -178,8 +177,6 @@ rr_cor <- cov2cor(rr_mat); rr_cor
 #visualization of covariance matrix
 colnames(rr_cor) <- rownames(rr_cor) <-
     c("OREw", "bx[1]","bx[2]","bx[3]", "sd[29.1]", "sd[1]", "sd[E3]", "sd[ETX4]", "sd[58d]")
-## BMB: why repeat this vector?
-## rownames(rr_cor)<- c("OREw", "bx[1]","bx[2]","bx[3]", "sd[29.1]", "sd[1]", "sd[E3]", "sd[ETX4]", "sd[58d]")
 
 col <- colorRampPalette(c("#BB4444", "#EE9988", "#FFFFFF", "#77AADD", "#4477AA"))
 
@@ -187,17 +184,15 @@ col <- colorRampPalette(c("#BB4444", "#EE9988", "#FFFFFF", "#77AADD", "#4477AA")
 corrplot(rr_cor, type = "lower", method = "color", col=col(200),
          addCoef.col = "black",
          tl.col = "black", tl.srt = 45)
-#### plotting variance ####
 
-
-## emmeans plot
+#### emmeans plot ####
 plot(emmeans(m5, "Allele_1", "Replicate"),
      ylab = "Mutant Allele",
-     xlab = "Within line variability",
+     xlab = "Within-line variability\n(Levene statistic)",
      comparison = TRUE,
      horizontal = TRUE)
 
-#Rxn norm of the mean plot
+#### Rxn norm of the mean plot using estimates ####
 
 summary(m5)
 
@@ -238,97 +233,10 @@ ggplot(dat_for_rxnnorm, aes(x=Genotype, y=lev_stat)) +
   labs(y="Levene's Statistic", x= "Mutant Allele") + 
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
 # these are huge and they are all the same for sd1 then go missing for ETX4/sd58d? 
-# is this due to the use of rank reduction? 
-# are the massive changes due to an outlier? 
-#curious...
+# is this due to the use of rank reduction I believe.
 
+#### BMB method utilizing the model to predict the outcomes to create a reaction norm graph ####
 
-#### Rank Reduced sd/bx might get rid of later #### 
-
-bxdat <- wing_table_lev_raw %>% 
-  filter(Allele_1 %in% c("OREw", "bx[1]", "bx[2]", "bx[3]")) %>%
-  droplevels()
-
-  
-str(bxdat)
-
-levels(bxdat$Allele_1)
-
-sddat<- wing_table_lev_raw %>% 
-  filter(Allele_1 %in% c("OREw", "sd[1]", "sd[29.1]", "sd[58d]", "sd[E3]", "sd[ETX4]")) %>%
-  droplevels()
-
-str(sddat)
-
-sddat <- sddat %>% mutate(Replicate = factor(Replicate))
-
-
-bxdat <- bxdat %>% mutate(Replicate = factor(Replicate))
-
-
-m3 <- glmmTMB(lev_stat ~ Allele_1 + rr(0 + Allele_1 | WT_Background,6) +
-                Replicate,
-              data=sddat,
-              control=glmmTMBControl(optCtrl=list(iter.max=1000,eval.max=1000)))
-summary(m3)
-
-coef(m5)$cond
-ranef(m5)$cond
-#still same issue is it something to do with my dataset?
-
-plot(emmeans(m3, "Allele_1"),
-     ylab = "Mutant Allele",
-     xlab = "Within line variability",
-     comparisons = T)
-
-
-
-sdestimates <- coef(m3, complete = F)$cond
-sdestimates2 <- data.frame(sdestimates[1],row.names = )
-
-sdestimates_df <-  data.frame(DGRP =rownames(estimates2),
-                            WT =  (estimates2[,2] + estimates2[,1]),
-                            sd29.1 = (estimates2[,2]  + estimates2[,3]), 
-                            sd1 = (estimates2[,2] + estimates2[,4]), 
-                            sdE3 = (estimates2[,2]  + estimates2[,5]),
-                            sdETX4 = (estimates2[,2]  + estimates2[,6]),
-                            sd58d = (estimates2[,2]  + estimates2[,7]))
-
-
-sddat_for_rxnnorm <- sdestimates_df %>% 
-  pivot_longer(c(WT, sd29.1, sd1, sdE3, sdETX4, sd58d), 
-               names_to = "Genotype", values_to = "lev_stat")
-
-sddat_for_rxnnorm <- sddat_for_rxnnorm %>% 
-  mutate(Genotype = factor(Genotype, 
-                           levels = c("WT","sd29.1", "sd1", "sdE3", 
-                                      "sdETX4", "sd58d")))
-levels(sddat_for_rxnnorm$Genotype)
-  
-ggplot(sddat_for_rxnnorm, aes(x=Genotype, y=lev_stat)) + 
-  geom_line(aes(color=DGRP, group=DGRP)) + 
-  geom_point(aes(color=DGRP)) + 
-  labs(y="Variability(Levene's Statistic)", x= "Mutant Allele") + 
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
-# how come there is negative numbers.... levene's stat shouldn't alow for this, telling
-# directionality of variability?
-
-m4 <- glmmTMB(lev_stat ~ Allele_1 + rr(0 + Allele_1 | WT_Background,4) +
-                Replicate,
-              data=bxdat,
-              control=glmmTMBControl(optCtrl=list(iter.max=1000,eval.max=1000)))
-
-
-summary(m4)
-
-plot(emmeans(m4, "Allele_1"),
-     ylab = "Mutant Allele",
-     xlab = "Within line variability",
-     comparisons = T)
-
-
-
-###
 RNdat <- with(wd,
               expand.grid(Allele_1=levels(Allele_1), WT_Background=levels(WT_Background)))
 
@@ -344,23 +252,24 @@ RNdat <- with(pp,
 library(colorspace)
 theme_set(theme_bw())
 gg1 <- (ggplot(RNdat, aes(x=Allele_1, y=lev_stat,color=WT_Background))
-    + geom_line(aes(group=WT_Background))
-    + geom_point()
-    + geom_ribbon(aes(ymin=lev_stat_lwr, ymax=lev_stat_upr, fill=WT_Background,
-                      group=WT_Background),
-                  colour=NA, alpha=0.05)
-    + labs(y="Within-line variability\n(Levene statistic)", x= "Mutant Allele")
+        + geom_line(aes(group=WT_Background))
+        + geom_point()
+        + geom_ribbon(aes(ymin=lev_stat_lwr, ymax=lev_stat_upr, fill=WT_Background,
+                          group=WT_Background),
+                      colour=NA, alpha=0.05)
+        + labs(y="Within-line variability\n(Levene statistic)", x= "Mutant Allele")
+        + theme(legend.position = "")
 )
 
 print(gg1 
-    + scale_colour_discrete_qualitative()
-    + scale_fill_discrete_qualitative()
-    )
+      + scale_colour_discrete_qualitative()
+      + scale_fill_discrete_qualitative()
+)
 
 library(hues)
 print(gg1
       + scale_colour_iwanthue()
-      )
+)
 
 ## nice idea but needs work.
 library(directlabels)
