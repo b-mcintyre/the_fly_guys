@@ -93,28 +93,20 @@ ggplot(line_means_sd_var_cv,
         legend.title = element_text(size= 12))
 
 
-ggplot(line_means_sd_var_cv, 
-       aes(x=length_means, y=length_cv, color=WT_Background)) + 
-  geom_point() + 
-  facet_wrap(~Allele_1) +
-  labs(x = "Line Means (mm)", 
-       y = "Line coefficent of Variation", 
-       color = "DGRP Background",
-       size = "Fly Sample Size") +
-  theme(axis.text.x = element_text(angle = 90, size = 10), 
-        axis.text.y = element_text(size = 10),
-        legend.text = element_text(size = 10),
-        legend.title = element_text(size= 12))
-
-  
-# seeing by each mutant allele 
-
 ## RXN norm plot for raw mean levene's statistic
 
 ggplot(line_means_sd_var_cv, aes(x=Allele_1, y=lev_stat)) + 
   geom_line(aes(color=WT_Background, group=WT_Background)) + 
   geom_point(aes(color=WT_Background)) + 
   labs(y="Within-line variation\n(Levene's statistic)", x= "Mutant Allele") + 
+  theme(legend.position = "")
+
+## RXN orm plot for raw mean wing size 
+
+ggplot(line_means_sd_var_cv, aes(x=Allele_1, y=length_means)) +
+  geom_line(aes(color=WT_Background,group=WT_Background)) +
+  geom_point(aes(color=WT_Background)) +
+    labs(y="Line means\n (wing_size_mm)", x= "Mutant Allele") +
   theme(legend.position = "")
 
 #boxplots for sd1, SdE3, and sd58d for weak, moderate and severe mutational effects 
@@ -270,50 +262,6 @@ plot(emmeans(m5, "Allele_1", "Replicate"),
      comparison = TRUE,
      horizontal = TRUE)
 
-#### Rxn norm of the mean plot using estimates ####
-
-summary(m5)
-
-ranef(m5)
-coef(m5)
-
-    
-estimates <- coef(m5)$cond
-estimates2 <- data.frame(estimates[1])
-
-estimates_df <-  data.frame(DGRP =rownames(estimates2),
-                          WT =  (estimates2[,2] + estimates2[,1]),
-                          bx1 = (estimates2[,2] + estimates2[,3]),
-                          bx2 = (estimates2[,2] + estimates2[,4]),
-                          bx3 = (estimates2[,2] + estimates2[,5]),
-                          sd29.1 = (estimates2[,2]  + estimates2[,6]), 
-                          sd1 = (estimates2[,2] + estimates2[,7]), 
-                          sdE3 = (estimates2[,2]  + estimates2[,8]),
-                          sdETX4 = (estimates2[,2]  + estimates2[,9]),
-                          sd58d = (estimates2[,2]  + estimates2[,10]))
-
-
-dat_for_rxnnorm <- estimates_df %>% 
-  pivot_longer(c(WT, bx1, bx2, bx3, sd29.1, sd1, sdE3, sdETX4, sd58d), 
-               names_to = "Genotype", values_to = "lev_stat")
-
-
-
-dat_for_rxnnorm <-dat_for_rxnnorm %>% 
-  mutate(Genotype = factor(Genotype, 
-                           levels = c("WT", "bx1", "bx2","bx3",
-                                      "sd29.1", "sd1", "sdE3", 
-                                      "sdETX4", "sd58d")))
-levels(dat_for_rxnnorm$Genotype)
-
-ggplot(dat_for_rxnnorm, aes(x=Genotype, y=lev_stat)) + 
-  geom_line(aes(color=DGRP, group=DGRP)) + 
-  geom_point(aes(color=DGRP)) + 
-  labs(y="Levene's Statistic", x= "Mutant Allele") + 
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
-# these are huge and they are all the same for sd1 then go missing for ETX4/sd58d? 
-# is this due to the use of rank reduction I believe.
-
 #### BMB method utilizing the model to predict the outcomes to create a reaction norm graph ####
 
 RNdat <- with(wd,
@@ -353,6 +301,223 @@ print(gg1
       + scale_colour_iwanthue()
 )
 
-## nice idea but needs work.
-library(directlabels)
-direct.label(gg1, "last.bumpup")
+#### mean wing size ####
+
+m6 <- lmer(wing_size_mm ~ Allele_1 + (0 + Allele_1 | WT_Background)
+           + (1|Replicate),
+           data = wd)
+
+VarCorr(m6)
+
+## this shows that among-replicate variance is zero: as JD says, three
+## levels is too few for fitting RE. Replace random effect of replicate
+## with fixed effect:
+
+m7 <- update(m6, . ~ . - (1|Replicate) + Replicate)
+
+## but, still singular.
+
+## compound symmetry
+m8 <- update(m7, . ~ . - (0 + Allele_1 | WT_Background)
+             + (1|WT_Background/Allele_1))
+
+VarCorr(m7)
+## profile confidence intervals are fairly narrow
+confint(m7, parm="theta_", oldNames=FALSE)
+
+library(bbmle)
+AICtab(m6,m7,m8, logLik=TRUE)
+## hmm ... this says that the more complex models are *way* better
+
+## help("image-methods", package="Matrix")
+## -> 
+ifun <- function(v,blank_diag=TRUE,...) {
+  nm <- rownames(v)
+  nm <- gsub("Allele_","",nm)
+  vv <- Matrix(v)
+  if (blank_diag) diag(vv) <- NA_real_
+  Matrix::image(Matrix(vv),
+                useAbs=FALSE,
+                scales=list(x=list(at=seq(nrow(v)),labels=nm, rot=90),
+                            y=list(at=seq(ncol(v)),labels=nm)),
+                xlab="",ylab="",sub="",...)
+}
+
+## correlation matrix for full model
+v6 <- cov2cor(VarCorr(m7)[[1]])
+
+## construct compound symmetric matrix
+v7 <- c(VarCorr(m8)[["Allele_1:WT_Background"]],
+       VarCorr(m8)[["WT_Background"]])
+v8 <- matrix(v7[2]/(v7[1]+v7[2]),nrow=nrow(v6),ncol=ncol(v6),
+             dimnames=dimnames(v6))
+diag(v8) <- 1
+
+plot_grid(ifun(v7,main="unstructured"),ifun(v8, main="compound symm"))
+
+## principal components 
+rr1 <- rePCA(m7)
+plot(rr1[[1]]$sdev,type="b",pch=16)
+
+## install from pull request (need compilation tools installed)
+remotes::install_github("glmmTMB/glmmTMB/glmmTMB#670")
+library(glmmTMB)
+
+m9 <- glmmTMB(formula(m7), data=wd)
+v9 <- cov2cor(VarCorr(m9)$cond[[1]])
+
+attr(v9,"blockCode") <- NULL ## strip for comparison
+plot_grid(ifun(v6,main="lme4"),ifun(v9, main="glmmTMB"))
+all.equal(v6,v9) ## 3% difference ...
+## slightly different ... but probably close enough to trust
+eigen(v6)$values
+eigen(v6)$values
+
+## rank-reduced model: 3 components
+m10 <- glmmTMB(wing_size_mm ~ Allele_1 + rr(0 + Allele_1 | WT_Background,3) +
+                Replicate,
+              data=wd,
+              control=glmmTMBControl(optCtrl=list(iter.max=1000,eval.max=1000)))
+v10 <- cov2cor(VarCorr(m10)$cond[[1]])
+plot_grid(ifun(v2,main="full"),ifun(v5, main="rr5"))
+zapsmall(eigen(v5)$values)
+AICtab(m6,m7,m8,m9,m10,
+       mnames=c("full+rand rep","full","compsymm","TMB full+rep","rr5"),
+       logLik=TRUE)
+
+
+#added correlation plot for rr3 model
+rr_mat1 <- matrix(v10, nrow = 9, ncol = 9, byrow = T); rr_mat1
+
+rr_cor1 <- cov2cor(rr_mat1); rr_cor1
+
+#visualization
+colnames(rr_cor1) <- rownames(rr_cor1) <-
+  c("OREw", "bx[1]","bx[2]","bx[3]", "sd[29.1]", "sd[1]", "sd[E3]", "sd[ETX4]", "sd[58d]")
+
+
+
+corrplot(rr_cor1, type = "lower", method = "color", col=col(200),
+         addCoef.col = "black",
+         tl.col = "black", tl.srt = 45)
+
+# Anova 
+Anova(m10, type = "III")
+
+#emmeans
+plot(emmeans(m10, "Allele_1", "Replicate"),
+     ylab = "Mutant Allele",
+     xlab = "Wing size (mm)",
+     comparison = TRUE,
+     horizontal = TRUE)
+
+#RXNM
+RNdat1 <- with(wd,
+               expand.grid(Allele_1=levels(Allele_1), WT_Background=levels(WT_Background)))
+pp1 <- predict(m10, newdata=data.frame(RNdat1, Replicate="R1"), se.fit=TRUE)
+
+RNdat1 <- with(pp1,
+               data.frame(RNdat1,
+                          wing_size_mm=fit,
+                          wing_size_mm_lwr=fit-2*se.fit,
+                          wing_size_mm_upr=fit+2*se.fit))
+library(colorspace)
+theme_set(theme_bw())
+gg2 <- (ggplot(RNdat1, aes(x=Allele_1, y=wing_size_mm,color=WT_Background))
+        + geom_line(aes(group=WT_Background))
+        + geom_point()
+        + geom_ribbon(aes(ymin=wing_size_mm_lwr, ymax=wing_size_mm_upr, fill=WT_Background,
+                          group=WT_Background),
+                      colour=NA, alpha=0.05)
+        + labs(y="Wing size (mm)", x= "Mutant Allele")
+        + theme(legend.position = "")
+)
+
+print(gg2 
+      + scale_colour_discrete_qualitative()
+      + scale_fill_discrete_qualitative()
+)
+
+# Deviations code
+wRNdat <- with(wd,
+               expand.grid(Allele_1=levels(Allele_1), WT_Background=levels(WT_Background)))
+
+wRNdat <- with(pp,
+               data.frame(wRNdat,
+                          wing_size_mm=fit))
+
+wideRNdat <- wRNdat %>% pivot_wider(names_from = "Allele_1", "WT_Background", values_from = "wing_size_mm")
+
+
+#deviations by mutant allele
+bx1 <- wideRNdat[,3] -  wideRNdat[,2]
+bx2 <-  wideRNdat[,4] -  wideRNdat[,2]
+bx3 <-  wideRNdat[,5] -  wideRNdat[,2]
+sd291 <-  wideRNdat[,6] -  wideRNdat[,2]
+sd1 <-  wideRNdat[,7] -  wideRNdat[,2]
+sde3 <-  wideRNdat[,8] -  wideRNdat[,2]
+sdetx4 <-  wideRNdat[,9] -  wideRNdat[,2]
+sd58d <-  wideRNdat[,10] -  wideRNdat[,2]
+
+wing_size_deviations <- cbind(wideRNdat[,1, drop = FALSE],bx1,bx2,bx3,sd291,sd1,sde3,sdetx4,sd58d)
+
+wing_size_deviations <- wing_size_deviations %>% 
+  pivot_longer(c("bx[1]", "bx[2]", "bx[3]", "sd[29.1]", "sd[1]", "sd[E3]", "sd[ETX4]", "sd[58d]"),
+               names_to = "Genotype", values_to = "Deviations")
+
+
+
+wing_size_deviations$WT_Background <- as.factor(wing_size_deviations$WT_Background)
+
+modRNdat <- RNdat %>% filter(Allele_1 != "OREw")
+
+wing_size_deviations <- cbind(wing_size_deviations,modRNdat[,3, drop = FALSE])
+
+gg3 <- ggplot(wing_size_deviations, 
+       aes(y = lev_stat, x = Deviations, colour = Genotype)) +
+  geom_point( size = 2, alpha = 0.5) +
+  theme(legend.text = element_text(size = 12),
+        legend.title = element_text(size = 14)) +
+  labs(x = "Deviations From Wild type, mm", 
+       y = "Variability\n(Levene Stat)") + 
+  geom_smooth(method = "lm", color = "Red")
+
+gg3
+
+cor.test(wing_size_deviations$Deviations, 
+         wing_size_deviations$lev_stat, 
+         method = "pearson", 
+         conf.level = 0.95)
+
+#Mixed modeling
+
+deviationlmer <- lmer(lev_stat ~  1 + Deviations +
+                        Genotype  + (1|WT_Background),
+                      control = lmerControl(optimizer = "None"), 
+                      data = wing_size_deviations)
+
+allFit(deviationlmer)
+
+coef(deviationlmer)
+
+wing_size_deviations <- wing_size_deviations %>% 
+  mutate( scaledDevs = scale(wing_size_deviations$Deviations))
+
+
+deviationlmer1 <- lmer(lev_stat ~  1  + scaledDevs +
+                         Genotype  + (1|WT_Background),
+                       data = wing_size_deviations)
+
+allFit(deviationlmer1)
+
+fixef(deviationlmer)
+fixef(deviationlmer1)
+#scaling doesn't seem to make much of a difference  
+ranef(deviationlmer)
+ranef(deviationlmer1)
+
+llikAIC(deviationlmer, deviationlmer1)
+
+
+
+
