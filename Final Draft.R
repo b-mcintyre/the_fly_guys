@@ -121,6 +121,50 @@ ggplot(boxdat, aes(x=WT_Background, y=wing_size_mm)) +
 
 # see more variation in the moderate allele than other alleles 
 
+##Checking to see if log transformation is appropriate for levene's statistic values or not by using Box-Cox analysis
+
+
+str(wing_table_lev_raw)
+
+X<-wing_table_lev_raw$lev_stat
+X
+X <- X + 1    ##offset for Box-Cox (log)
+
+bc <- boxcox ( X ~ 1,
+               lambda = seq ( -20, 10, 0.01 ),
+               plotit = TRUE
+)
+
+bc$x
+cbind ( bc$x, bc$y )
+bc$x [ which.max ( bc$y ) ]                                       # -- optimum lambda
+
+LAllowance <- qchisq ( 0.95, 1 ) / 2
+CI.Limits  <- bc$x [ bc$y > max ( bc$y ) - LAllowance ]           # -- approx 95% confidence limits
+
+min ( CI.Limits )                                                 # -- approx lower 95% confidence limit
+max ( CI.Limits )                                                 # -- approx upper 95% confidence limit
+
+##Checking to see if log transformation is appropriate for wing size values or not, using Box-Cox analysis
+X2<-wing_table_lev_raw$wing_size_mm
+X2
+X2 <- X2 + 1    ##offset for Box-Cox (log)
+bc2 <- boxcox ( X2 ~ 1,
+                lambda = seq ( -20, 10, 0.01 ),
+                plotit = TRUE
+)
+
+bc2$x
+cbind ( bc2$x, bc2$y )
+bc2$x [ which.max ( bc2$y ) ]                                       # -- optimum lambda
+
+LAllowance <- qchisq ( 0.95, 1 ) / 2
+CI.Limits  <- bc2$x [ bc2$y > max ( bc2$y ) - LAllowance ]           # -- approx 95% confidence limits
+
+min ( CI.Limits )                                                 # -- approx lower 95% confidence limit
+max ( CI.Limits )                                                 # -- approx upper 95% confidence limit
+
+
 #### multilevel modeling ####
 
 #Original coding:
