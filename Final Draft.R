@@ -480,8 +480,7 @@ gg3 <- ggplot(wing_size_deviations,
   theme(legend.text = element_text(size = 12),
         legend.title = element_text(size = 14)) +
   labs(x = "Deviations From Wild type, mm", 
-       y = "Variability\n(Levene Stat)") + 
-  geom_smooth(method = "lm", color = "Red")
+       y = "Within-Line Variability\n(Levene Stat)")
 
 gg3
 
@@ -518,8 +517,12 @@ ranef(deviationlmer1)
 
 llikAIC(deviationlmer, deviationlmer1)
 
+deviationlmer2 <- lmer(lev_stat ~ 1 + Deviations + (1|WT_Background),data = wing_size_deviations)
 
-deviationlmer2 <- lm(lev_stat ~ 1 + Deviations + Genotype + WT_Background, 
+allFit(deviationlmer2)
+
+
+deviationlm <- lm(lev_stat ~ 1 + Deviations + Genotype + WT_Background, 
                        data = wing_size_deviations)
 
-summary(deviationlmer2)
+summary(deviationlm)
