@@ -424,6 +424,7 @@ m10 <- glmmTMB(wing_size_mm ~ Allele_1 + rr(0 + Allele_1 | WT_Background,3) +
               control=glmmTMBControl(optCtrl=list(iter.max=1000,eval.max=1000)))
 v10 <- cov2cor(VarCorr(m10)$cond[[1]])
 plot_grid(ifun(v2,main="full"),ifun(v5, main="rr5"))
+
 zapsmall(eigen(v5)$values)
 AICtab(m6,m7,m8,m9,m10,
        mnames=c("full+rand rep","full","compsymm","TMB full+rep","rr5"),
@@ -523,8 +524,7 @@ gg3 <- ggplot(wing_size_deviations,
   theme(legend.text = element_text(size = 12),
         legend.title = element_text(size = 14)) +
   labs(x = "Deviations From Wild type, mm", 
-       y = "Variability\n(Levene Stat)") + 
-  geom_smooth(method = "lm", color = "Red")
+       y = "Within-Line Variability\n(Levene Stat)")
 
 gg3
 
@@ -536,8 +536,7 @@ cor.test(wing_size_deviations$Deviations,
 #Mixed modeling
 
 deviationlmer <- lmer(lev_stat ~  1 + Deviations +
-                        Genotype  + (1|WT_Background),
-                      control = lmerControl(optimizer = "None"), 
+                        Genotype  + (1|WT_Background), 
                       data = wing_size_deviations)
 
 allFit(deviationlmer)
@@ -562,6 +561,12 @@ ranef(deviationlmer1)
 
 llikAIC(deviationlmer, deviationlmer1)
 
+deviationlmer2 <- lmer(lev_stat ~ 1 + Deviations + (1|WT_Background),data = wing_size_deviations)
+
+allFit(deviationlmer2)
 
 
+deviationlm <- lm(lev_stat ~ 1 + Deviations + Genotype + WT_Background, 
+                       data = wing_size_deviations)
 
+summary(deviationlm)
