@@ -130,5 +130,19 @@ April 22, 2021:
 - So will be doing that, utilizing levene's statistic as a measure of within-line variability. 
 - will utilize the rank reduced model for levene's statistic.
 
+April 23, 2021: 
+-Working on putting together the report
 
+April 24, 2021: 
+-Working on putting together the report
+-Doing a boxcox analysis to show corroborate our decision not to do a log transformation 
+
+April 25, 2021:
+-realized we don't really have a quantitative output; need to figure out a way to address our biological question more properly
+-generating wing size deviations, and inputting them against levene stat in a model 
+
+April 26, 2021:
+-working on putting together the report 
+-figuring out how to get the new models we have created to converge 
+-updating the readme file
 
