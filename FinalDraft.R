@@ -22,6 +22,8 @@ library(bbmle)
 library(colorspace)
 library(glmmTMB)
 
+## You should have some sort of version check for glmmTMB; the weird require stuff did not save me
+
 #### Cleaning Data ####
 
 raw_wing_table <- read_csv("NEW_CD_DGRP_Subset_Data_2019_V2.csv")
