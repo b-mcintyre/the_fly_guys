@@ -13,13 +13,14 @@ library(Matrix)
 library(cowplot)
 library(emmeans)
 library(effects)
-while (!require("glmmTMB")) {
-    remotes::install_github("glmmTMB/glmmTMB")
-}
 library(lattice)
 library(coda)
 
-
+## JD: library should be at top
+library(hues)
+library(bbmle)
+library(colorspace)
+library(glmmTMB)
 
 #### Cleaning Data ####
 
@@ -219,7 +220,6 @@ VarCorr(m3)
 ## profile confidence intervals are fairly narrow
 confint(m3, parm="theta_", oldNames=FALSE)
 
-library(bbmle)
 AICtab(m1,m2,m3, logLik=TRUE)
 ## hmm ... this says that the more complex models are *way* better
 
@@ -323,7 +323,6 @@ RNdat <- with(pp,
 
 
 
-library(colorspace)
 theme_set(theme_bw())
 gg1 <- (ggplot(RNdat, aes(x=Allele_1, y=lev_stat,color=WT_Background))
         + geom_line(aes(group=WT_Background))
@@ -340,7 +339,6 @@ print(gg1
       + scale_fill_discrete_qualitative()
 )
 
-library(hues)
 print(gg1
       + scale_colour_iwanthue()
 )
@@ -369,7 +367,6 @@ VarCorr(m7)
 ## profile confidence intervals are fairly narrow
 confint(m7, parm="theta_", oldNames=FALSE)
 
-library(bbmle)
 AICtab(m6,m7,m8, logLik=TRUE)
 ## hmm ... this says that the more complex models are *way* better
 
@@ -405,7 +402,6 @@ plot(rr1[[1]]$sdev,type="b",pch=16)
 
 ## install from pull request (need compilation tools installed)
 remotes::install_github("glmmTMB/glmmTMB/glmmTMB#670")
-library(glmmTMB)
 
 m9 <- glmmTMB(formula(m7), data=wd)
 v9 <- cov2cor(VarCorr(m9)$cond[[1]])
@@ -466,7 +462,6 @@ RNdat1 <- with(pp1,
                           wing_size_mm=fit,
                           wing_size_mm_lwr=fit-2*se.fit,
                           wing_size_mm_upr=fit+2*se.fit))
-library(colorspace)
 theme_set(theme_bw())
 gg2 <- (ggplot(RNdat1, aes(x=Allele_1, y=wing_size_mm,color=WT_Background))
         + geom_line(aes(group=WT_Background))
