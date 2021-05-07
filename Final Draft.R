@@ -13,12 +13,22 @@ library(Matrix)
 library(cowplot)
 library(emmeans)
 library(effects)
-while (!require("glmmTMB")) {
-    remotes::install_github("glmmTMB/glmmTMB")
+## don't auto-install
+## while (!require("glmmTMB")) {
+##     remotes::install_github("glmmTMB/glmmTMB/glmmTMB")
+## }
+library(glmmTMB)
+if (packageVersion("glmmTMB") < "1.0.2.9000") {
+  stop("Need devel version of glmmTMB for rr() model: use 'remotes::install_github(\"glmmTMB/glmmTMB/glmmTMB\")'")
 }
 library(lattice)
 library(coda)
-
+## BMB: try to put all library() statements at the top
+##  (these were introduced by me, but you should move them to
+##  the top when cleaning up your code)
+library(bbmle)
+library(colorspace)
+library(hues)
 
 
 #### Cleaning Data ####
@@ -27,13 +37,13 @@ raw_wing_table <- read_csv("NEW_CD_DGRP_Subset_Data_2019_V2.csv")
 
 str(raw_wing_table)
 
-wing_table_clean <- raw_wing_table %>% 
+wing_table_clean <- raw_wing_table %>%
   mutate(wing_size_mm = sqrt(TotalArea.px * 0.00215^2),
          TotalArea.px = NULL,
-         Temperature = NULL, 
-         Allele_1 = factor(Allele_1, levels = c("OREw", "bx[1]", "bx[2]", 
-                                                "bx[3]","sd[29.1]", "sd[1]", 
-                                                "sd[E3]", "sd[ETX4]", "sd[58d]")), 
+         Temperature = NULL,
+         Allele_1 = factor(Allele_1, levels = c("OREw", "bx[1]", "bx[2]",
+                                                "bx[3]","sd[29.1]", "sd[1]",
+                                                "sd[E3]", "sd[ETX4]", "sd[58d]")),
          WT_Background = factor(WT_Background))
 
 levels(wing_table_clean$WT_Background)
@@ -43,7 +53,7 @@ source("scripts/ID_LeveneStat_V1_2016.R")
 
 
 wing_table_lev_raw <- wing_table_clean %>%
-    mutate ( lev_stat = LeveneDeviates(y = wing_size_mm, 
+    mutate ( lev_stat = LeveneDeviates(y = wing_size_mm,
                                        group = Allele_1:WT_Background, med = TRUE))
 
 str(wing_table_clean)
@@ -53,12 +63,12 @@ saveRDS(wing_table_lev_raw, file ="wing_table_lev_raw.rds")
 wd <- readRDS("wing_table_lev_raw.rds")
 
 #getting line means/sd/var and group sd/bx means/sd/var
-#maybe plot the variance over the means? 
+#maybe plot the variance over the means?
 
 
-line_means_sd_var_cv <- wing_table_lev_raw %>% 
-  group_by(Allele_1, WT_Background) %>% 
-  summarise(length_means = mean(wing_size_mm), 
+line_means_sd_var_cv <- wing_table_lev_raw %>%
+  group_by(Allele_1, WT_Background) %>%
+  summarise(length_means = mean(wing_size_mm),
             length_sd = sd(wing_size_mm),
             length_cv = (sd(wing_size_mm)/mean(wing_size_mm)),
             lev_stat = mean(lev_stat),
@@ -67,11 +77,11 @@ line_means_sd_var_cv <- wing_table_lev_raw %>%
 
 #### visualizing data ####
 
-ggplot(line_means_sd_var_cv, 
+ggplot(line_means_sd_var_cv,
        aes(x=length_means, y=length_cv, color=Allele_1, size=Individuals)) +
-  geom_point() + 
-  labs(x = "Line means (mm)", 
-       y = "Line Standard Deviation", 
+  geom_point() +
+  labs(x = "Line means (mm)",
+       y = "Line Standard Deviation",
        size = "Fly Sample Size",
        color = "Mutant Allele") +
 theme(axis.text.x = element_text(size = 12),
@@ -80,12 +90,12 @@ theme(axis.text.x = element_text(size = 12),
       legend.title = element_text(size= 12))
 
 
-ggplot(line_means_sd_var_cv, 
-       aes(x=length_means, y=length_sd, color=Allele_1, size=Individuals)) + 
+ggplot(line_means_sd_var_cv,
+       aes(x=length_means, y=length_sd, color=Allele_1, size=Individuals)) +
   geom_point() +
-  labs(x = "Line Means (mm)", 
-       y = "Line Coefficient of Variation", 
-       size = "Fly Sample Size", 
+  labs(x = "Line Means (mm)",
+       y = "Line Coefficient of Variation",
+       size = "Fly Sample Size",
        color = "Mutant Allele") +
   theme(axis.text.x = element_text(size = 12),
         axis.text.y = element_text(size = 12),
@@ -95,13 +105,13 @@ ggplot(line_means_sd_var_cv,
 
 ## RXN norm plot for raw mean levene's statistic
 
-ggplot(line_means_sd_var_cv, aes(x=Allele_1, y=lev_stat)) + 
-  geom_line(aes(color=WT_Background, group=WT_Background)) + 
-  geom_point(aes(color=WT_Background)) + 
-  labs(y="Within-line variation\n(Levene's statistic)", x= "Mutant Allele") + 
+ggplot(line_means_sd_var_cv, aes(x=Allele_1, y=lev_stat)) +
+  geom_line(aes(color=WT_Background, group=WT_Background)) +
+  geom_point(aes(color=WT_Background)) +
+  labs(y="Within-line variation\n(Levene's statistic)", x= "Mutant Allele") +
   theme(legend.position = "")
 
-## RXN orm plot for raw mean wing size 
+## RXN orm plot for raw mean wing size
 
 ggplot(line_means_sd_var_cv, aes(x=Allele_1, y=length_means)) +
   geom_line(aes(color=WT_Background,group=WT_Background)) +
@@ -109,17 +119,17 @@ ggplot(line_means_sd_var_cv, aes(x=Allele_1, y=length_means)) +
     labs(y="Line means\n (wing_size_mm)", x= "Mutant Allele") +
   theme(legend.position = "")
 
-#boxplots for sd1, SdE3, and sd58d for weak, moderate and severe mutational effects 
+#boxplots for sd1, SdE3, and sd58d for weak, moderate and severe mutational effects
 
 boxdat <- wd %>% filter(Allele_1 == c("sd[1]", "sd[E3]", "sd[58d]"))
 
-ggplot(boxdat, aes(x=WT_Background, y=wing_size_mm)) + 
-  facet_wrap(~Allele_1) + 
-  geom_boxplot() + 
-  theme(axis.text.x=element_text(angle=90, size = 9)) + 
+ggplot(boxdat, aes(x=WT_Background, y=wing_size_mm)) +
+  facet_wrap(~Allele_1) +
+  geom_boxplot() +
+  theme(axis.text.x=element_text(angle=90, size = 9)) +
   labs(x= "DGRP line", y="Wing size (mm)")
 
-# see more variation in the moderate allele than other alleles 
+# see more variation in the moderate allele than other alleles
 
 ##Checking to see if log transformation is appropriate for levene's statistic values or not by using Box-Cox analysis
 
@@ -147,7 +157,7 @@ max ( CI.Limits )                                                 # -- approx up
 
 ##Checking to see if log transformation is appropriate for wing size values or not, using Box-Cox analysis
 X2<-wing_table_lev_raw$wing_size_mm
-X2
+## X2 ## BMB: don't print ...
 X2 <- X2 + 1    ##offset for Box-Cox (log)
 bc2 <- boxcox ( X2 ~ 1,
                 lambda = seq ( -20, 10, 0.01 ),
@@ -172,19 +182,25 @@ all_glm_wing_size_lev <- lmer(lev_stat ~ Allele_1 + (0 + Allele_1 | WT_Backgroun
                               + (1|Replicate),
                               data = wing_table_lev_raw)
 
-#JD code suggestion results in a warning message of checking convergence 
+#JD code suggestion results in a warning message of checking convergence
 JDall_glm_wing_size_lev <- lmer(lev_stat ~  1 + Allele_1 + Replicate + (0 + Allele_1 | WT_Background),
                        data = wing_table_lev_raw)
 
-allFit(JDall_glm_wing_size_lev)
-#majority still singular 
-
+## BMB: might want to skip/comment out this step, as it takes a long time and isn't actually used in any
+##  of the subsequent steps. When people like me or JD try to rerun the code, it's tedious. (And you *should*
+##  be running your code start-to-finish periodically to make sure everything works consistently ...)
+if (FALSE) {
+  allFit(JDall_glm_wing_size_lev)
+}
+#majority still singular
+## BMB: singularity is **not** a problem you should expect to fit with a different optimizer.
+## Failure to convergence is a property of/problem with _numerical optimization/model fitting_
+## Singularity is a property of the _model & data_
 
 # this is where JD said replicate should be treated as a fixed effect because there is only two levels(3ish)
-# which he believes is causing the singularity/problems 
+# which he believes is causing the singularity/problems
 
 #### BMB's rank reduced model with 5 components ####
-
 
 ## first try: full model
 m1 <- lmer(lev_stat ~ Allele_1 + (0 + Allele_1 | WT_Background)
@@ -213,18 +229,17 @@ m3 <- update(m2, . ~ . - (0 + Allele_1 | WT_Background)
 ## eps_WT ~ N(0,sigma^2_WT); eps_allele:WT ~ N(0, sigma^2_{a:WT}
 ## for the covariance of i and j where i and j have the same WT & A
 ## (variance) E[(eps_{WT,B} + eps_{a:WT,A})^2] = sigma^2_WT + sigma^2_{a:WT}
-## 
+##
 
 VarCorr(m3)
 ## profile confidence intervals are fairly narrow
 confint(m3, parm="theta_", oldNames=FALSE)
 
-library(bbmle)
 AICtab(m1,m2,m3, logLik=TRUE)
 ## hmm ... this says that the more complex models are *way* better
 
 ## help("image-methods", package="Matrix")
-## -> 
+## ->
 ifun <- function(v,blank_diag=TRUE,...) {
   nm <- rownames(v)
   nm <- gsub("Allele_","",nm)
@@ -249,7 +264,7 @@ diag(v3) <- 1
 
 plot_grid(ifun(v2,main="unstructured"),ifun(v3, main="compound symm"))
 
-## principal components 
+## principal components
 rr <- rePCA(m2)
 plot(rr[[1]]$sdev,type="b",pch=16)
 
@@ -323,7 +338,6 @@ RNdat <- with(pp,
 
 
 
-library(colorspace)
 theme_set(theme_bw())
 gg1 <- (ggplot(RNdat, aes(x=Allele_1, y=lev_stat,color=WT_Background))
         + geom_line(aes(group=WT_Background))
@@ -335,12 +349,11 @@ gg1 <- (ggplot(RNdat, aes(x=Allele_1, y=lev_stat,color=WT_Background))
         + theme(legend.position = "")
 )
 
-print(gg1 
+print(gg1
       + scale_colour_discrete_qualitative()
       + scale_fill_discrete_qualitative()
 )
 
-library(hues)
 print(gg1
       + scale_colour_iwanthue()
 )
@@ -367,14 +380,14 @@ m8 <- update(m7, . ~ . - (0 + Allele_1 | WT_Background)
 
 VarCorr(m7)
 ## profile confidence intervals are fairly narrow
-confint(m7, parm="theta_", oldNames=FALSE)
+## BMB: consider skipping or caching? (slow)
+if (FALSE) confint(m7, parm="theta_", oldNames=FALSE)
 
-library(bbmle)
 AICtab(m6,m7,m8, logLik=TRUE)
 ## hmm ... this says that the more complex models are *way* better
 
 ## help("image-methods", package="Matrix")
-## -> 
+## ->
 ifun <- function(v,blank_diag=TRUE,...) {
   nm <- rownames(v)
   nm <- gsub("Allele_","",nm)
@@ -399,13 +412,9 @@ diag(v8) <- 1
 
 plot_grid(ifun(v7,main="unstructured"),ifun(v8, main="compound symm"))
 
-## principal components 
+## principal components
 rr1 <- rePCA(m7)
 plot(rr1[[1]]$sdev,type="b",pch=16)
-
-## install from pull request (need compilation tools installed)
-remotes::install_github("glmmTMB/glmmTMB/glmmTMB#670")
-library(glmmTMB)
 
 m9 <- glmmTMB(formula(m7), data=wd)
 v9 <- cov2cor(VarCorr(m9)$cond[[1]])
@@ -414,7 +423,6 @@ attr(v9,"blockCode") <- NULL ## strip for comparison
 plot_grid(ifun(v6,main="lme4"),ifun(v9, main="glmmTMB"))
 all.equal(v6,v9) ## 3% difference ...
 ## slightly different ... but probably close enough to trust
-eigen(v6)$values
 eigen(v6)$values
 
 ## rank-reduced model: 3 components
@@ -440,13 +448,11 @@ rr_cor1 <- cov2cor(rr_mat1); rr_cor1
 colnames(rr_cor1) <- rownames(rr_cor1) <-
   c("OREw", "bx[1]","bx[2]","bx[3]", "sd[29.1]", "sd[1]", "sd[E3]", "sd[ETX4]", "sd[58d]")
 
-
-
 corrplot(rr_cor1, type = "lower", method = "color", col=col(200),
          addCoef.col = "black",
          tl.col = "black", tl.srt = 45)
 
-# Anova 
+# Anova
 Anova(m10, type = "III")
 
 #emmeans
@@ -466,7 +472,6 @@ RNdat1 <- with(pp1,
                           wing_size_mm=fit,
                           wing_size_mm_lwr=fit-2*se.fit,
                           wing_size_mm_upr=fit+2*se.fit))
-library(colorspace)
 theme_set(theme_bw())
 gg2 <- (ggplot(RNdat1, aes(x=Allele_1, y=wing_size_mm,color=WT_Background))
         + geom_line(aes(group=WT_Background))
@@ -478,7 +483,7 @@ gg2 <- (ggplot(RNdat1, aes(x=Allele_1, y=wing_size_mm,color=WT_Background))
         + theme(legend.position = "")
 )
 
-print(gg2 
+print(gg2
       + scale_colour_discrete_qualitative()
       + scale_fill_discrete_qualitative()
 )
@@ -487,12 +492,12 @@ print(gg2
 wRNdat <- with(wd,
                expand.grid(Allele_1=levels(Allele_1), WT_Background=levels(WT_Background)))
 
+## PREDICTED wing size for each combination
 wRNdat <- with(pp,
                data.frame(wRNdat,
                           wing_size_mm=fit))
 
 wideRNdat <- wRNdat %>% pivot_wider(names_from = "Allele_1", "WT_Background", values_from = "wing_size_mm")
-
 
 #deviations by mutant allele
 bx1 <- wideRNdat[,3] -  wideRNdat[,2]
@@ -503,47 +508,46 @@ sd1 <-  wideRNdat[,7] -  wideRNdat[,2]
 sde3 <-  wideRNdat[,8] -  wideRNdat[,2]
 sdetx4 <-  wideRNdat[,9] -  wideRNdat[,2]
 sd58d <-  wideRNdat[,10] -  wideRNdat[,2]
-
+## BMB: could do this with a mutate(across(...))
 wing_size_deviations <- cbind(wideRNdat[,1, drop = FALSE],bx1,bx2,bx3,sd291,sd1,sde3,sdetx4,sd58d)
 
-wing_size_deviations <- wing_size_deviations %>% 
+wing_size_deviations <- wing_size_deviations %>%
   pivot_longer(c("bx[1]", "bx[2]", "bx[3]", "sd[29.1]", "sd[1]", "sd[E3]", "sd[ETX4]", "sd[58d]"),
                names_to = "Genotype", values_to = "Deviations")
-
-
 
 wing_size_deviations$WT_Background <- as.factor(wing_size_deviations$WT_Background)
 
 modRNdat <- RNdat %>% filter(Allele_1 != "OREw")
 
+## attach lev_stat
 wing_size_deviations <- cbind(wing_size_deviations,modRNdat[,3, drop = FALSE])
 
-gg3 <- ggplot(wing_size_deviations, 
+gg3 <- ggplot(wing_size_deviations,
        aes(y = lev_stat, x = Deviations, colour = Genotype)) +
   geom_point( size = 2, alpha = 0.5) +
   theme(legend.text = element_text(size = 12),
         legend.title = element_text(size = 14)) +
-  labs(x = "Deviations From Wild type, mm", 
+  labs(x = "Deviations From Wild type, mm",
        y = "Within-Line Variability\n(Levene Stat)")
 
 gg3
 
-cor.test(wing_size_deviations$Deviations, 
-         wing_size_deviations$lev_stat, 
-         method = "pearson", 
+cor.test(wing_size_deviations$Deviations,
+         wing_size_deviations$lev_stat,
+         method = "pearson",
          conf.level = 0.95)
 
 #Mixed modeling
 
 deviationlmer <- lmer(lev_stat ~  1 + Deviations +
-                        Genotype  + (1|WT_Background), 
+                        Genotype  + (1|WT_Background),
                       data = wing_size_deviations)
 
 allFit(deviationlmer)
 
 coef(deviationlmer)
 
-wing_size_deviations <- wing_size_deviations %>% 
+wing_size_deviations <- wing_size_deviations %>%
   mutate( scaledDevs = scale(wing_size_deviations$Deviations))
 
 
@@ -555,7 +559,7 @@ allFit(deviationlmer1)
 
 fixef(deviationlmer)
 fixef(deviationlmer1)
-#scaling doesn't seem to make much of a difference  
+#scaling doesn't seem to make much of a difference
 ranef(deviationlmer)
 ranef(deviationlmer1)
 
@@ -566,7 +570,24 @@ deviationlmer2 <- lmer(lev_stat ~ 1 + Deviations + (1|WT_Background),data = wing
 allFit(deviationlmer2)
 
 
-deviationlm <- lm(lev_stat ~ 1 + Deviations + Genotype + WT_Background, 
+deviationlm <- lm(lev_stat ~ 1 + Deviations + Genotype + WT_Background,
                        data = wing_size_deviations)
 
 summary(deviationlm)
+
+with(wd, table(Allele_1,WT_Background, Replicate))
+
+## BMB: an alternate calculation, based on raw data.  Trying to figure out what the difference is ... ???
+wd2 <- (wd
+  %>% filter(Replicate=="R1")
+  %>% dplyr::select(Allele_1,WT_Background,lev_stat,wing_size_mm, Replicate)
+  %>% bind_cols(wing_size_pred=predict(m10, newdata=.))
+)
+
+  %>% mutate(across(c(wing_size_mm, wing_size_pred), ~. - wing_size_mm[Allele_1=="OREw"])))
+  %>% filter(Allele_1 != "OREw")
+)
+
+ggplot(wd2, aes(wing_size_pred, lev_stat, colour=Allele_1)) + geom_point(alpha=0.5)
+
+## BMB: giving up now, I can't figure out what's going on ...
