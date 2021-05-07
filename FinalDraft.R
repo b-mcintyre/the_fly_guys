@@ -5,7 +5,7 @@ library(lme4)
 library(car)
 library(corrplot)
 library(MASS)
-library(blme)
+## library(blme)
 library(rstanarm)
 library(broom.mixed)
 library(dotwhisker)
@@ -14,22 +14,17 @@ library(cowplot)
 library(emmeans)
 library(effects)
 ## don't auto-install
-## while (!require("glmmTMB")) {
-##     remotes::install_github("glmmTMB/glmmTMB/glmmTMB")
-## }
 library(glmmTMB)
 if (packageVersion("glmmTMB") < "1.0.2.9000") {
   stop("Need devel version of glmmTMB for rr() model: use 'remotes::install_github(\"glmmTMB/glmmTMB/glmmTMB\")'")
 }
 library(lattice)
 library(coda)
-## BMB: try to put all library() statements at the top
-##  (these were introduced by me, but you should move them to
-##  the top when cleaning up your code)
+
+## JD: library() should be at top
+library(hues)
 library(bbmle)
 library(colorspace)
-library(hues)
-
 
 #### Cleaning Data ####
 
