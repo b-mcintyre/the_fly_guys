@@ -1,0 +1,21 @@
+
+Equation 1 seems a bit confusing. Why should Med(X_ijk)) go over all i, but a fixed j and k? Wouldn't Med(X_jk) be a better name?
+
+The Curran-Everett discussion is long and a bit weird. It sounds like they discovered the central limit theorem in 2015.
+
+Equation 2 says it's an equation for likelihood, but I feel pretty clear it's the transformation equation instead.
+
+The final Curran-Everett ¶ says that they concluded that a log transformation was not appropriate for "a skewed distribution." Which one? Also, it kind of looks like that distribution would be a good candidate for a square-root distribution, but you don't mention that. You never really made clear why you report this particular analysis.
+
+"we visualized the levene’s statistic through a reaction norm of the mean plot of the raw data" sounds very complicated. Does it just mean you plotted the Levene statistic for each cross? 
+
+Based on the numerical patterns, it looks very much like you mixed up CV and sd in F4 and F5!
+
+I'm wondering what you learn from F6-8 that can't be seen in 4-5.
+
+I am really not sure what sort of Box-Cox analyses you did. Usually I think it's done by transforming residuals from a particular statistical model, but I'm not sure what assumptions you made. The values you find seem pretty surprising. I guess (looking at the code) it's because you used a null model, so Box-Cox has to try to make _all_ of your observations into a _single_ normal distribution.
+
+I couldn't get m5 to run, and didn't really try to go beyond that. It looks like the rr function doesn't get properly passed to the model
+
+In F17, it is not clear what you mean by "deviations from wild type". It also seems quite weird to use model predictions as an independent variable. Given that you have an extremely high correlation, I guess there is some sort of loop here.
+
